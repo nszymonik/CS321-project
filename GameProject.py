@@ -6,7 +6,25 @@ import pygame
 from pygame.locals import *
 import sys
 
+#defined classes
+class Ground(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.surf = pygame.Surface((300, 10))
+        self.surf.fill(GREEN)
+        self.rect = self.surf.get_rect(center = (150, 295))
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.surf = pygame.Surface((100, 100))
+        self.surf.fill(BLACK)
+        self.rect = self.surf.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
 # initializing the pygame
+
 pygame.init()
 
 #set fps
@@ -39,12 +57,7 @@ pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH/2, 0), (WIDTH, HEIGHT)])
 pygame.draw.polygon(SURFACE, WHITE, [(int(WIDTH/3), int(HEIGHT/3)), (int(WIDTH/2), 0),
                                      (int(WIDTH * (2/3)), int(HEIGHT/3))])
 
-class Ground(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.surf = pygame.Surface((300, 10))
-        self.surf.fill(GREEN)
-        self.rect = self.surf.get_rect(center = (150, 295))
+
 
 #drawing platforms
 pygame.draw.line(SURFACE, LIGHT_GREY, (50, 250), (150, 250), 10)
@@ -65,10 +78,12 @@ pygame.draw.polygon(SURFACE, RED, [(24, 280), (17, 280), (24, 270)])
 #pygame.draw.line(SURFACE, GREEN, (0, 295), (300, 295), 10)
 
 ground = Ground()
-
+player = Player(150, 150)
 
 allSprites = pygame.sprite.Group()
 allSprites.add(ground)
+allSprites.add(player)
+
 
 
 #game running
