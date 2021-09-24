@@ -54,11 +54,12 @@ class Player(pygame.sprite.Sprite):
         if key[pygame.K_LEFT]:
             dx -= 5
         if key[pygame.K_RIGHT]:
-            dx += 5   
+            dx += 5
         self.rect.x += dx
         self.rect.y += dy
-        #drawing
-        
+
+        self.rect = self.rect.clamp(pygame.Rect(0,0, WIDTH, HEIGHT))
+        #drawing        
 
 def update_bg():
     SURFACE.fill(LIGHT_BLUE)
@@ -109,7 +110,5 @@ while True:
     for entity in allSprites:
         entity.update()
         SURFACE.blit(entity.surf, entity.rect)
-        
-
     pygame.display.update()
     framePerSec.tick(FPS)
