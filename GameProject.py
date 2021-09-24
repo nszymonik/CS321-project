@@ -22,6 +22,24 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.vx = 0
+        self.vy = 0
+
+    def update(self):
+        dx = 0;
+        dy = 0;
+        #input
+        key=pygame.key.get_pressed()
+        if key[pygame.K_LEFT]:
+            dx -= 5
+        if key[pygame.K_RIGHT]:
+            dx += 5
+        
+        self.rect.x += dx
+        self.rect.y += dy
+        #drawing
+        
+        SURFACE.blit(self.surf, self.rect)
 
 # initializing the pygame
 
@@ -95,6 +113,7 @@ while True:
             sys.exit()
     for entity in allSprites:
         SURFACE.blit(entity.surf, entity.rect)
+        entity.update()
 
     pygame.display.update()
     framePerSec.tick(FPS)
