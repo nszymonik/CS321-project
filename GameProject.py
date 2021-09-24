@@ -69,11 +69,11 @@ class Player(pygame.sprite.Sprite):
         
         #testing
         new_rect = pygame.Rect(self.rect.x+dx, self.rect.y+dy, self.rect.w, self.rect.h)
-        if(new_rect.y >= HEIGHT - new_rect.h):
+        if(new_rect.colliderect(ground)):
+            new_rect.y = ground.rect.y - self.rect.h
             self.vy = 0
             self.jump = True
-        self.rect = new_rect.clamp(pygame.Rect(0,0, WIDTH, HEIGHT))
-        #drawing        
+        self.rect = new_rect.clamp(pygame.Rect(0,0, WIDTH, HEIGHT)) 
 
 def update_bg():
     SURFACE.fill(LIGHT_BLUE)
@@ -115,11 +115,13 @@ allSprites.add(player)
 
 #game running
 while True:
+    
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+    
     update_bg()
     for entity in allSprites:
         entity.update()
