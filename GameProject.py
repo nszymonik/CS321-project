@@ -43,6 +43,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.rect.w = 10
+        self.rect.h = 10
         self.vx = 0
         self.vy = 0
         self.jump = True
@@ -50,7 +52,6 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         dx = 0;
         dy = 0;
-
         #input
         key=pygame.key.get_pressed()
         if key[pygame.K_LEFT]:
@@ -62,14 +63,16 @@ class Player(pygame.sprite.Sprite):
                 self.jump = False
                 self.vy = -15
     
+        #gravity
         dy += self.vy
         self.vy = min(self.vy + 1, 10)
-        self.rect.x += dx
-        self.rect.y += dy
-        if(self.rect.y >= HEIGHT - 10):
+        
+        #testing
+        new_rect = pygame.Rect(self.rect.x+dx, self.rect.y+dy, self.rect.w, self.rect.h)
+        if(new_rect.y >= HEIGHT - new_rect.h):
             self.vy = 0
             self.jump = True
-        self.rect = self.rect.clamp(pygame.Rect(0,0, WIDTH, HEIGHT - 10))
+        self.rect = new_rect.clamp(pygame.Rect(0,0, WIDTH, HEIGHT))
         #drawing        
 
 def update_bg():
