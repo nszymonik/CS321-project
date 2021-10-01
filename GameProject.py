@@ -81,6 +81,11 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         dx = 0;
         dy = 0;
+        #collison for player
+        hits = pygame.sprite.spritecollide(player, platforms, False)
+        if hits:
+            self.rect.y = hits[0].rect.top - 20
+            self.jump = True
         #input
         key=pygame.key.get_pressed()
         if key[pygame.K_LEFT]:
@@ -136,7 +141,10 @@ platform3 = Platform(WIDTH/3, (HEIGHT*5)/12, WIDTH / 4)
 endFlag = FlagPole((WIDTH*11)/30, (HEIGHT*7)/20)
 startFlag = FlagPole(WIDTH/12, (9*HEIGHT)/10)
 
+#to update all the sprites
 allSprites = pygame.sprite.Group()
+#for collsion
+platforms = pygame.sprite.Group()
 allSprites.add(ground)
 allSprites.add(player)
 allSprites.add(platform1)
@@ -144,6 +152,10 @@ allSprites.add(platform2)
 allSprites.add(platform3)
 allSprites.add(endFlag)
 allSprites.add(startFlag)
+platforms.add(ground)
+platforms.add(platform1)
+platforms.add(platform2)
+platforms.add(platform3)
 
 #game running
 while True:
