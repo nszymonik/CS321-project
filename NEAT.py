@@ -9,16 +9,16 @@ class Organism():
         self.edges = {}
         self.fitness = -1
 
-    def addEdge(self, sequence, weight):
+    def add_edge(self, sequence, weight):
         return 0
 
-    def disableEdge(self, iD):
+    def disable_edge(self, iD):
         return 0
 
-    def addNode(self, iD, sequence, weightPrev, weightNext):
+    def add_node(self, iD, sequence, weightPrev, weightNext):
         return 0
 
-    def forwardProp(self, inputNodes):
+    def forward_prop(self, inputNodes):
         return 0
 
 class Selection():
