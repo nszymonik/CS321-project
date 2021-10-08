@@ -82,11 +82,7 @@ class Player(pygame.sprite.Sprite):
         dx = 0;
         dy = 0;
         #collison for player
-        hits = pygame.sprite.spritecollide(player, platforms, False)
-        if hits:
-            self.rect.y = hits[0].rect.top - self.rect.h
-            self.vy=0;
-            self.jump = True
+        
         #input
         key=pygame.key.get_pressed()
         if key[pygame.K_LEFT]:
@@ -95,20 +91,22 @@ class Player(pygame.sprite.Sprite):
             dx += 5
         if key[pygame.K_UP]:
             if (self.jump):
-                self.jump = False
                 self.vy = -10
     
         #gravity
         dy += self.vy
         self.vy = min(self.vy + 1, 10)
-        
-        #testing
-        new_rect = pygame.Rect(self.rect.x+dx, self.rect.y+dy, self.rect.w, self.rect.h)
-        if(new_rect.colliderect(ground)):
-            new_rect.y = ground.rect.y - self.rect.h
-            self.vy = 0
+        self.rect.x += dx
+        self.rect.y += dy
+        self.rect = self.rect.clamp(0,0,WIDTH,HEIGHT)
+        hits = pygame.sprite.spritecollide(player, platforms, False)
+        if hits:
+            self.rect.y = hits[0].rect.top - self.rect.h
+            self.vy=0;
             self.jump = True
-        self.rect = new_rect.clamp(pygame.Rect(0,0, WIDTH, HEIGHT)) 
+        else: 
+            self.jump = False
+
 
 def update_bg():
     SURFACE.fill(LIGHT_BLUE)
