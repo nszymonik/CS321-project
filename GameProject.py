@@ -76,7 +76,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.h = 10
         self.vx = 0
         self.vy = 0
-        self.jump = True
+        self.jump = False
 
     def update(self):
         dx = 0;
@@ -84,7 +84,8 @@ class Player(pygame.sprite.Sprite):
         #collison for player
         hits = pygame.sprite.spritecollide(player, platforms, False)
         if hits:
-            self.rect.y = hits[0].rect.top - 20
+            self.rect.y = hits[0].rect.top - self.rect.h
+            self.vy=0;
             self.jump = True
         #input
         key=pygame.key.get_pressed()
@@ -95,7 +96,7 @@ class Player(pygame.sprite.Sprite):
         if key[pygame.K_UP]:
             if (self.jump):
                 self.jump = False
-                self.vy = -15
+                self.vy = -10
     
         #gravity
         dy += self.vy
@@ -112,7 +113,7 @@ class Player(pygame.sprite.Sprite):
 def update_bg():
     SURFACE.fill(LIGHT_BLUE)
     #caption display
-    pygame.display.set_caption('Test Game')
+    
 
     #drawing mountain background
     pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH/2, 0), (WIDTH, HEIGHT)])
@@ -131,6 +132,7 @@ def update_bg():
 
 # initializing the pygame
 pygame.init()
+pygame.display.set_caption('Test Game')
 
 ground = Ground()
 player = Player(150, 150)
@@ -159,17 +161,17 @@ platforms.add(platform3)
 
 #game running
 while True:
-    
-    pygame.display.update()
+    #pygame.display.update()
+    update_bg()
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
     
-    update_bg()
-    for entity in allSprites:
-        entity.update()
-        allSprites.update()
-        allSprites.draw(SURFACE)
+    
+    #for entity in allSprites:
+    #entity.update()
+    allSprites.update()
+    allSprites.draw(SURFACE)
     pygame.display.update()
     framePerSec.tick(FPS)
