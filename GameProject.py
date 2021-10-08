@@ -5,6 +5,7 @@
 import pygame
 from pygame.locals import *
 import sys
+import random
 
 #assigning constants
 #set fps
@@ -74,32 +75,35 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = y
         self.rect.w = 10
         self.rect.h = 10
-        self.vx = 0
+        self.inputs = [False, False, False]
         self.vy = 0
         self.jump = False
 
     def update(self):
         dx = 0;
         dy = 0;
-        #collison for player
-        
+
         #input
-        key=pygame.key.get_pressed()
-        if key[pygame.K_LEFT]:
+        self.inputs=self.get_input()
+        if self.inputs[0]:
             dx -= 5
-        if key[pygame.K_RIGHT]:
+        if self.inputs[1]:
             dx += 5
-        if key[pygame.K_UP]:
+        if self.inputs[2]:
             if (self.jump):
                 self.vy = -10
     
         #gravity
         dy += self.vy
         self.vy = min(self.vy + 1, 10)
+        
+        #initial movements
         self.rect.x += dx
         self.rect.y += dy
+
+        #constraints
         self.rect = self.rect.clamp(0,0,WIDTH,HEIGHT)
-        hits = pygame.sprite.spritecollide(player, platforms, False)
+        hits = pygame.sprite.spritecollide(self, platforms, False)
         if hits:
             self.rect.y = hits[0].rect.top - self.rect.h
             self.vy=0;
@@ -107,11 +111,22 @@ class Player(pygame.sprite.Sprite):
         else: 
             self.jump = False
 
+    #Each enemy should have their own version of this, with an algorithm telling it what "keys" to press each frame.
+    #Index 0 is left; 1, right; 2, jump.
+    def get_input(self):
+        key=pygame.key.get_pressed()
+        return [key[pygame.K_LEFT], key[pygame.K_RIGHT], key[pygame.K_UP]]
 
+class RandomEnemy(Player):
+    def __init__(self, x, y, color):
+        super().__init__(x, y)
+        self.image.fill(color)
+    def get_input(self):
+        return [random.getrandbits(1), random.getrandbits(1), random.getrandbits(1)]
+
+#update background 
 def update_bg():
-    SURFACE.fill(LIGHT_BLUE)
-    #caption display
-    
+    SURFACE.fill(LIGHT_BLUE)  
 
     #drawing mountain background
     pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH/2, 0), (WIDTH, HEIGHT)])
@@ -120,7 +135,6 @@ def update_bg():
 
     #end flag, remains static
     pygame.draw.polygon(SURFACE, RED, [((11*WIDTH)/30, (23*HEIGHT)/60), ((17*WIDTH)/50, (23*HEIGHT/60)), ((11*WIDTH)/30, (7*HEIGHT)/20)])
-
 
     #start flag, remains static
     pygame.draw.polygon(SURFACE, RED, [((2*WIDTH)/25, (14*HEIGHT)/15), ((17*WIDTH)/300, (14*HEIGHT)/15), ((2*WIDTH)/25, (9*HEIGHT)/10)])
@@ -133,7 +147,8 @@ pygame.init()
 pygame.display.set_caption('Test Game')
 
 ground = Ground()
-player = Player(150, 150)
+player = Player(WIDTH/2, HEIGHT/2)
+enemy = Enemy(WIDTH/2,HEIGHT/2,RED)
 #platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT*5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH/2, (2*HEIGHT)/3, WIDTH / 3)
@@ -147,6 +162,7 @@ allSprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 allSprites.add(ground)
 allSprites.add(player)
+allSprites.add(enemy)
 allSprites.add(platform1)
 allSprites.add(platform2)
 allSprites.add(platform3)
@@ -164,11 +180,7 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
-            sys.exit()
-    
-    
-    #for entity in allSprites:
-    #entity.update()
+            sys.exit()    
     allSprites.update()
     allSprites.draw(SURFACE)
     pygame.display.update()
