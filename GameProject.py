@@ -148,7 +148,7 @@ pygame.display.set_caption('Test Game')
 
 ground = Ground()
 player = Player(WIDTH/2, HEIGHT/2)
-enemy = Enemy(WIDTH/2,HEIGHT/2,RED)
+enemy = RandomEnemy(WIDTH/2,HEIGHT/2,RED)
 #platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT*5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH/2, (2*HEIGHT)/3, WIDTH / 3)
