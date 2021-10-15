@@ -6,11 +6,15 @@ import pygame
 from pygame.locals import *
 import sys
 import random
+pygame.font.init()
+endState = 0
+text_time = 0
 
 #assigning constants
 #set fps
 FPS = 30
 framePerSec = pygame.time.Clock()
+time = 0
 
 #set frame
 WIDTH = 450
@@ -28,6 +32,9 @@ WHITE = pygame.Color(255, 255, 255)
 
 SURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
 
+#Fonts
+FONT_TIMER = pygame.font.SysFont('arial', 14)
+FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 '''
 The ground for the game, unique sprite
 outputs: a sprite object that needs to be created and added to the sprites group
@@ -64,7 +71,18 @@ class FlagPole(pygame.sprite.Sprite):
         self.image.fill(BLACK)
         pygame.draw.rect(self.image, BLACK, pygame.Rect(xLoc, yLoc, WIDTH/100, HEIGHT/60))
         self.rect = self.image.get_rect(left = xLoc, top = yLoc)
-
+    #Triggers a type of ending
+    def update(self):
+        hitEnemy = pygame.sprite.spritecollide(self, enemies, False)
+        hitPlayer = pygame.sprite.spritecollide(self, players, False)
+        global text_time
+        global endState
+        if hitEnemy:
+            endState = -1
+            text_time = pygame.time.get_ticks()
+        if hitPlayer:
+            endState = 1
+            text_time = pygame.time.get_ticks()
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -91,7 +109,7 @@ class Player(pygame.sprite.Sprite):
             dx += 5
         if self.inputs[2]:
             if (self.jump):
-                self.vy = -10
+                self.vy = -20
     
         #gravity
         dy += self.vy
@@ -139,8 +157,18 @@ def update_bg():
     #start flag, remains static
     pygame.draw.polygon(SURFACE, RED, [((2*WIDTH)/25, (14*HEIGHT)/15), ((17*WIDTH)/300, (14*HEIGHT)/15), ((2*WIDTH)/25, (9*HEIGHT)/10)])
 
-    #drawing ground level
-    #pygame.draw.line(SURFACE, GREEN, (0, 295), (300, 295), 10)
+#Timer function
+def timer(time):
+    timerText = FONT_TIMER.render("%.2f"%(time/30), True, (0, 0, 0))
+    SURFACE.blit(timerText,(0, 0))
+
+#end function
+def endLevel(state):
+    global text_time
+    text_time = pygame.time.get_ticks()
+    global endState
+
+
 
 # initializing the pygame
 pygame.init()
@@ -148,7 +176,7 @@ pygame.display.set_caption('Test Game')
 
 ground = Ground()
 player = Player(WIDTH/2, HEIGHT/2)
-enemy = Enemy(WIDTH/2,HEIGHT/2,RED)
+enemy = RandomEnemy(WIDTH/2,HEIGHT/2,RED)
 #platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT*5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH/2, (2*HEIGHT)/3, WIDTH / 3)
@@ -158,8 +186,12 @@ startFlag = FlagPole(WIDTH/12, (9*HEIGHT)/10)
 
 #to update all the sprites
 allSprites = pygame.sprite.Group()
-#for collsion
+#for platform collision
 platforms = pygame.sprite.Group()
+#for flag collision
+endPoint = pygame.sprite.Group()
+players = pygame.sprite.Group()
+enemies = pygame.sprite.Group()
 allSprites.add(ground)
 allSprites.add(player)
 allSprites.add(enemy)
@@ -172,6 +204,9 @@ platforms.add(ground)
 platforms.add(platform1)
 platforms.add(platform2)
 platforms.add(platform3)
+endPoint.add(endFlag)
+players.add(player)
+enemies.add(enemy)
 
 #game running
 while True:
@@ -180,8 +215,27 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
-            sys.exit()    
+            sys.exit()
+    #for end of level
+    if endState == 1:
+            winText = FONT_WIN_LOSE.render("YOU WIN", True, (0, 0, 0))
+            SURFACE.blit(winText, (HEIGHT / 2, WIDTH / 2))
+            if (pygame.time.get_ticks() - text_time) > 3000:
+                endState = 0
+    elif endState == -1:
+            loseText = FONT_WIN_LOSE.render("YOU LOSE", True, (0, 0, 0))
+            SURFACE.blit(loseText, (HEIGHT / 2, WIDTH / 2))
+            if (pygame.time.get_ticks() - text_time) > 3000:
+                endState = 0
+
+    # for timer
+    time = time + 1
+    timer(time)
+
+    #updating the textures
     allSprites.update()
     allSprites.draw(SURFACE)
     pygame.display.update()
+
+    #tick frame
     framePerSec.tick(FPS)
