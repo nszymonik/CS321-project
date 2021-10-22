@@ -9,6 +9,7 @@ import random
 pygame.font.init()
 endState = 0
 text_time = 0
+level_num = 1
 
 #assigning constants
 #set fps
@@ -33,7 +34,7 @@ WHITE = pygame.Color(255, 255, 255)
 SURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
 
 #Fonts
-FONT_TIMER = pygame.font.SysFont('arial', 14)
+FONT_TIMER = pygame.font.SysFont('arial', 16)
 FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 '''
 The ground for the game, unique sprite
@@ -73,8 +74,8 @@ class FlagPole(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(left = xLoc, top = yLoc)
     #Triggers a type of ending
     def update(self):
-        hitEnemy = pygame.sprite.spritecollide(self, enemies, False)
-        hitPlayer = pygame.sprite.spritecollide(self, players, False)
+        hitEnemy = pygame.sprite.spritecollide(self, enemies, True)
+        hitPlayer = pygame.sprite.spritecollide(self, players, True)
         global text_time
         global endState
         if hitEnemy:
@@ -109,7 +110,7 @@ class Player(pygame.sprite.Sprite):
             dx += 5
         if self.inputs[2]:
             if (self.jump):
-                self.vy = -20
+                self.vy = -10
     
         #gravity
         dy += self.vy
@@ -156,23 +157,34 @@ def update_bg():
 
     #start flag, remains static
     pygame.draw.polygon(SURFACE, RED, [((2*WIDTH)/25, (14*HEIGHT)/15), ((17*WIDTH)/300, (14*HEIGHT)/15), ((2*WIDTH)/25, (9*HEIGHT)/10)])
+    #pygame.draw.line(SURFACE, BLACK, [(WIDTH/12, (29*HEIGHT)/30), (WIDTH/12, ((9*WIDTH)/10)), WIDTH/100])
+    pygame.draw.line(SURFACE, BLACK, (WIDTH/12, HEIGHT), (WIDTH/12, (9*HEIGHT)/10), (int)(WIDTH/100))
+
+def resetPlayers():
+    global player
+    for entity in enemies:
+        entity.kill()
+    player.kill()
+    player = Player(WIDTH / 12, HEIGHT)
+    players.add(player)
+    allSprites.add(player)
+    enemy = RandomEnemy(WIDTH / 12, HEIGHT, RED)
+    enemies.add(enemy)
+    allSprites.add(enemy)
 
 #Timer function
 def timer(time):
-    timerText = FONT_TIMER.render("%.2f"%(time/30), True, (0, 0, 0))
-    SURFACE.blit(timerText,(0, 0))
+    timer_text = FONT_TIMER.render("Time %.2f"%(time/30), True, BLACK)
+    SURFACE.blit(timer_text,(0, 0))
 
-#end function
-def endLevel(state):
-    global text_time
-    text_time = pygame.time.get_ticks()
-    global endState
-
-
+#prints the level
+def level(level):
+    level_text = FONT_TIMER.render("level %d"%level_num, True, BLACK)
+    SURFACE.blit(level_text, (WIDTH-(WIDTH/12), 0))
 
 # initializing the pygame
 pygame.init()
-pygame.display.set_caption('Test Game')
+pygame.display.set_caption('The Race Up Stair-Case Mountain')
 
 ground = Ground()
 player = Player(WIDTH/2, HEIGHT/2)
@@ -182,7 +194,6 @@ platform1 = Platform(WIDTH / 6, (HEIGHT*5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH/2, (2*HEIGHT)/3, WIDTH / 3)
 platform3 = Platform(WIDTH/3, (HEIGHT*5)/12, WIDTH / 4)
 endFlag = FlagPole((WIDTH*11)/30, (HEIGHT*7)/20)
-startFlag = FlagPole(WIDTH/12, (9*HEIGHT)/10)
 
 #to update all the sprites
 allSprites = pygame.sprite.Group()
@@ -199,7 +210,6 @@ allSprites.add(platform1)
 allSprites.add(platform2)
 allSprites.add(platform3)
 allSprites.add(endFlag)
-allSprites.add(startFlag)
 platforms.add(ground)
 platforms.add(platform1)
 platforms.add(platform2)
@@ -222,20 +232,26 @@ while True:
             SURFACE.blit(winText, (HEIGHT / 2, WIDTH / 2))
             if (pygame.time.get_ticks() - text_time) > 3000:
                 endState = 0
+                time = 0
+                level_num = level_num + 1
+                resetPlayers()
+
     elif endState == -1:
             loseText = FONT_WIN_LOSE.render("YOU LOSE", True, (0, 0, 0))
             SURFACE.blit(loseText, (HEIGHT / 2, WIDTH / 2))
             if (pygame.time.get_ticks() - text_time) > 3000:
                 endState = 0
+                time = 0
+                event.type = QUIT
 
     # for timer
     time = time + 1
     timer(time)
+    level(level_num)
 
     #updating the textures
     allSprites.update()
     allSprites.draw(SURFACE)
     pygame.display.update()
-
     #tick frame
     framePerSec.tick(FPS)
