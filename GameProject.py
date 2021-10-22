@@ -44,7 +44,6 @@ class Ground(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface([WIDTH, HEIGHT-(HEIGHT-10)])
-        #self.surf = pygame.Surface((WIDTH, HEIGHT-(HEIGHT-10)))
         self.image.fill(GREEN)
         self.rect = self.image.get_rect(center = (WIDTH/2, HEIGHT-5))
 
@@ -191,8 +190,9 @@ player = Player(WIDTH/2, HEIGHT/2)
 enemy = RandomEnemy(WIDTH/2,HEIGHT/2,RED)
 #platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT*5) / 6, WIDTH / 3)
-platform2 = Platform(WIDTH/2, (2*HEIGHT)/3, WIDTH / 3)
-platform3 = Platform(WIDTH/3, (HEIGHT*5)/12, WIDTH / 4)
+platform2 = Platform(WIDTH/2, (2*HEIGHT)/3, WIDTH / 4)
+platform3 = Platform((7*WIDTH)/12, HEIGHT/2, WIDTH/8)
+platform4 = Platform(WIDTH/3, (HEIGHT*5)/12, WIDTH / 5)
 endFlag = FlagPole((WIDTH*11)/30, (HEIGHT*7)/20)
 
 #to update all the sprites
@@ -209,11 +209,13 @@ allSprites.add(enemy)
 allSprites.add(platform1)
 allSprites.add(platform2)
 allSprites.add(platform3)
+allSprites.add(platform4)
 allSprites.add(endFlag)
 platforms.add(ground)
 platforms.add(platform1)
 platforms.add(platform2)
 platforms.add(platform3)
+platforms.add(platform4)
 endPoint.add(endFlag)
 players.add(player)
 enemies.add(enemy)
