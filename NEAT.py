@@ -23,18 +23,18 @@ class Organism():
         self.edges = {}
         self.fitness = -1
 
-    def isOutput(self, n):
+    def is_output(self, n):
         return (n >= self.numInputNodes and n < self.numOutputNodes)
 
-    def isInput(self, n):
+    def is_input(self, n):
         return (n < self.numInputNodes)
 
     def add_edge(self, n1, n2, weight):
         sequence = (n1, n2)
-        if not isOutput(n2) and n1 > n2:
+        if (self.is_output(n1)):
             sequence = (n2, n1)
         if sequence not in edgeDict:
-            edgeDict.add(sequence)
+            edgeDict.append(sequence)
         iD = edgeDict.index(sequence)
         self.edges[iD] = (weight, 1)
 
@@ -43,24 +43,30 @@ class Organism():
 
     def add_node(self, iD, weightPrev, weightNext):
         s = edgeDict[iD]
+        print(s)
         del self.edges[iD]
-        self.add_edge(self, s[0], len(self.nodes), weightPrev)
-        self.add_edge(self, len(self.nodes), s[1], weightNext)
+        self.add_edge(s[0], len(self.nodes), weightPrev)
+        self.add_edge(len(self.nodes), s[1], weightNext)
+        print(self.edges)
+        print(edgeDict)
         self.nodes.append(len(self.nodes))
 
     def recurse_node(self, n, inputVals):
         inp = []
         ret = 0
+
+        #print(n)
         
         for key in self.edges:
             if edgeDict[key][1] == n:
+                #print(edgeDict[key])
                 inp.append(key)
 
         for i in inp:
-            if isInput(edgeDict[i][0]):
+            if self.is_input(edgeDict[i][0]):
                 ret += inputVals[edgeDict[i][0]]*self.edges[i][0]*self.edges[i][1]
             else:
-                ret += recurse_node(self, edgeDict[i][0], inputVals)*self.edges[i][0]*self.edges[i][1]
+                ret += self.recurse_node(edgeDict[i][0], inputVals)*self.edges[i][0]*self.edges[i][1]
 
         return sigmoid(ret)
 
@@ -68,7 +74,7 @@ class Organism():
         outputVals = []
 
         for i in range(0, self.numOutputNodes):
-            outputVals.append(recurse_node(self, self.numInputNodes + i, inputVals))
+            outputVals.append(self.recurse_node(self.numInputNodes + i, inputVals))
 
         return outputVals
 
@@ -98,5 +104,28 @@ class Mutation():
 
     def mutate(newGen, percentage):
         return 0
+    
+'''
+a = Organism(3, 3)
+a.add_edge(0, 3, 0.5)
+a.add_edge(1, 3, 0.5)
+a.add_edge(2, 3, 0.5)
+
+a.add_edge(0, 4, 0.5)
+a.add_edge(1, 4, 0.5)
+a.add_edge(2, 4, 0.5)
+
+a.add_edge(1, 5, 0.5)
+a.add_edge(2, 5, 0.5)
 
 
+a.add_node(1, 0.5, 0.5)
+a.add_node(2, 0.5, 0.5)
+a.add_node(3, 0.5, 0.5)
+
+a.add_edge(6, 5, 0.75)
+a.add_edge(7, 5, 0.5)
+a.add_edge(8, 5, 0.75)
+
+print(a.forward_prop(tuple((1, 1, 1))))
+'''
