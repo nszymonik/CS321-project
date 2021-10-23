@@ -32,7 +32,7 @@ class Organism():
 
     def contains_node(self, n):
         return (n < self.numNodes)
-
+    
     def add_edge(self, n1, n2, weight):
         sequence = (n1, n2)
         if (self.is_output(n1)) or ((n1 > n2) and (not self.is_output(n2))):
@@ -94,31 +94,31 @@ class Organism():
         return outputVals
 
 class Selection():
-    def crossbreed(org1, org2):
-        otherOrg = org1.copy()
+    def crossbreed(self, org1, org2):
+        otherOrg = org1.copy_org()
         newOrg = org2.copy_org()
         if org1.fitness > org2.fitness:
             temp = newOrg
             newOrg = otherOrg
             otherOrg = temp
         
-        for key in otherOrg:
-            if key not in newOrg and newOrg.contains_node(edgeDict[key][0]) and newOrg.contains_node(edgeDict[key][1]) and otherOrg[key][1]:
-                newOrg.add_edge(edgeDict[key][0], edgeDict[key][1], otherOrg[key][0])
+        for key in otherOrg.edges:
+            if otherOrg.edges[key][1] and key not in newOrg.edges and newOrg.contains_node(edgeDict[key][0]) and newOrg.contains_node(edgeDict[key][1]):
+                newOrg.add_edge(edgeDict[key][0], edgeDict[key][1], otherOrg.edges[key][0])
         
         return newOrg
 
-    def selection(oldGen, population):
+    def selection(self, oldGen, population):
         newGen = []
 
-        oldGen.sort(key=operator.attrgetter('fitness'), reverse=True)
+        oldGen.sort(key=lambda x: x.fitness, reverse=True)
         oldGen = oldGen[0:len(oldGen)//2]
         newGen.append(oldGen[0])
 
-        for i in range(0, (population/2 + 0.5)//1 - 1):
+        for i in range(0, int(population/2 + 0.5) - 1):
             newGen.append(oldGen[random.randint(0,len(oldGen) - 1)])
 
-        for i in range((population/2 + 0.5)//1 - 1, population):
+        for i in range(int(population/2 + 0.5) - 1, population):
             newGen.append(self.crossbreed(oldGen[random.randint(0,len(oldGen) - 1)], oldGen[random.randint(0,len(oldGen) - 1)]))
         
         return newGen
@@ -164,11 +164,19 @@ a.add_edge(6, 5, 0.75)
 a.add_edge(7, 5, 0.5)
 a.add_edge(8, 5, 0.75)
 
-print(a.forward_prop(tuple((1, 1, 1))))
+#print(a.forward_prop(tuple((1, 1, 1))))
 
 b = a.copy_org()
 b.add_edge(6, 4, .88)
 
-print(a.forward_prop(tuple((1, 1, 1))))
-print(b.forward_prop(tuple((1, 1, 1))))
+#print(a.forward_prop(tuple((1, 1, 1))))
+#print(b.forward_prop(tuple((1, 1, 1))))
+'''
+'''
+gen = [a.copy_org(), b.copy_org(), a.copy_org(), b.copy_org(), b.copy_org(), b.copy_org(), a.copy_org(), a.copy_org()]
+selector = Selection()
+selector.selection(gen, len(gen))
+
+for i in range(0, len(gen)):
+    print(gen[i].edges)
 '''
