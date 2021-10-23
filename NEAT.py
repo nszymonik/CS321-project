@@ -30,9 +30,12 @@ class Organism():
     def is_input(self, n):
         return (n < self.numInputNodes)
 
+    def contains_node(self, n):
+        return (n < self.numNodes)
+
     def add_edge(self, n1, n2, weight):
         sequence = (n1, n2)
-        if (self.is_output(sequence[0])) or ((n1 > n2) and (not self.is_output(sequence[1]))):
+        if (self.is_output(n1)) or ((n1 > n2) and (not self.is_output(n2))):
             sequence = (n2, n1)
         if sequence not in edgeDict:
             edgeDict.append(sequence)
@@ -52,15 +55,26 @@ class Organism():
         print(edgeDict)
         self.numNodes += 1
 
+    def copy_org(self):
+        cOrg = Organism(self.numInputNodes, self.numOutputNodes)
+        cOrg.numNodes = self.numNodes
+        cOrg.fitness = self.fitness
+
+        temp = {}
+        for key in self.edges:
+            temp[key] = self.edges[key][:]
+        cOrg.edges = temp
+
+        return cOrg
+
     def recurse_node(self, n, inputVals):
         inp = []
         ret = 0
 
-        print(n)
-        
+        #print(n)
         for key in self.edges:
             if edgeDict[key][1] == n:
-                print(edgeDict[key])
+                #print(edgeDict[key])
                 inp.append(key)
 
         for i in inp:
@@ -81,7 +95,18 @@ class Organism():
 
 class Selection():
     def crossbreed(org1, org2):
-        return 0
+        otherOrg = org1.copy()
+        newOrg = org2.copy_org()
+        if org1.fitness > org2.fitness:
+            temp = newOrg
+            newOrg = otherOrg
+            otherOrg = temp
+        
+        for key in otherOrg:
+            if key not in newOrg and newOrg.contains_node(edgeDict[key][0]) and newOrg.contains_node(edgeDict[key][1]) and otherOrg[key][1]:
+                newOrg.add_edge(edgeDict[key][0], edgeDict[key][1], otherOrg[key][0])
+        
+        return newOrg
 
     def selection(oldGen, population):
         newGen = []
@@ -114,7 +139,7 @@ class Mutation():
     def mutate_node(org):
         return 0
 
-    def mutate(newGen, percentage):
+    def mutate_gen(newGen, percentage):
         return 0
     
 '''
@@ -140,4 +165,10 @@ a.add_edge(7, 5, 0.5)
 a.add_edge(8, 5, 0.75)
 
 print(a.forward_prop(tuple((1, 1, 1))))
+
+b = a.copy_org()
+b.add_edge(6, 4, .88)
+
+print(a.forward_prop(tuple((1, 1, 1))))
+print(b.forward_prop(tuple((1, 1, 1))))
 '''
