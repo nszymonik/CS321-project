@@ -19,19 +19,20 @@ class Organism():
     def __init__(self, numInputNodes, numOutputNodes):
         self.numInputNodes = numInputNodes
         self.numOutputNodes = numOutputNodes
-        self.nodes = [i for i in range(0, numInputNodes + numOutputNodes)]
+        self.numNodes = numInputNodes + numOutputNodes
+        #self.nodes = [i for i in range(0, numInputNodes + numOutputNodes)]
         self.edges = {}
         self.fitness = -1
 
     def is_output(self, n):
-        return (n >= self.numInputNodes and n < self.numOutputNodes)
+        return (n >= self.numInputNodes and n < self.numInputNodes + self.numOutputNodes)
 
     def is_input(self, n):
         return (n < self.numInputNodes)
 
     def add_edge(self, n1, n2, weight):
         sequence = (n1, n2)
-        if (self.is_output(n1)):
+        if (self.is_output(sequence[0])) or ((n1 > n2) and (not self.is_output(sequence[1]))):
             sequence = (n2, n1)
         if sequence not in edgeDict:
             edgeDict.append(sequence)
@@ -45,21 +46,21 @@ class Organism():
         s = edgeDict[iD]
         print(s)
         del self.edges[iD]
-        self.add_edge(s[0], len(self.nodes), weightPrev)
-        self.add_edge(len(self.nodes), s[1], weightNext)
+        self.add_edge(s[0], self.numNodes, weightPrev)
+        self.add_edge(self.numNodes, s[1], weightNext)
         print(self.edges)
         print(edgeDict)
-        self.nodes.append(len(self.nodes))
+        self.numNodes += 1
 
     def recurse_node(self, n, inputVals):
         inp = []
         ret = 0
 
-        #print(n)
+        print(n)
         
         for key in self.edges:
             if edgeDict[key][1] == n:
-                #print(edgeDict[key])
+                print(edgeDict[key])
                 inp.append(key)
 
         for i in inp:
@@ -79,16 +80,27 @@ class Organism():
         return outputVals
 
 class Selection():
-    def crossbreed(organism1, organism2):
+    def crossbreed(org1, org2):
         return 0
 
     def selection(oldGen, population):
-        return 0
+        newGen = []
+
+        oldGen.sort(key=operator.attrgetter('fitness'), reverse=True)
+        oldGen = oldGen[0:len(oldGen)//2]
+        newGen.append(oldGen[0])
+
+        for i in range(0, (population/2 + 0.5)//1 - 1):
+            newGen.append(oldGen[random.randint(0,len(oldGen) - 1)])
+
+        for i in range((population/2 + 0.5)//1 - 1, population):
+            newGen.append(self.crossbreed(oldGen[random.randint(0,len(oldGen) - 1)], oldGen[random.randint(0,len(oldGen) - 1)]))
+        
+        return newGen
 
 class Mutation():
     def mutate_enable_disable(org):
         return 0
-
 
     def mutate_weight_shift(org):
         return 0
