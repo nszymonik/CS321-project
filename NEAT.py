@@ -125,13 +125,19 @@ class Selection():
 
 class Mutation():
     def mutate_enable_disable(org):
-        return 0
+        e = list(org.edges.keys())
+        iD = e[random.randint(0, len(e) - 1)]
+        org.edges[iD][1] = 1 - org.edges[iD][1]
 
     def mutate_weight_shift(org):
-        return 0
-
+        e = list(org.edges.keys())
+        iD = e[random.randint(0, len(e) - 1)]
+        org.edges[iD][0] *= random.uniform(0, 2)
+        
     def mutate_weight_random(org):
-        return 0
+        e = list(org.edges.keys())
+        iD = e[random.randint(0, len(e) - 1)]
+        org.edges[iD][0] = random.uniform(-2, 2)
 
     def mutate_link(org):
         return 0
