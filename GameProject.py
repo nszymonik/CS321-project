@@ -1,6 +1,3 @@
-# NEED TO TURN THE LEVEL DESIGN INTO RATIOS
-# PUT PLATFORMS INTO ARRAY
-
 # importing libraries
 import pygame
 from pygame.locals import *
@@ -175,7 +172,7 @@ class RandomEnemy(Player):
         dx = 0;
         dy = 0;
 
-        # input
+        input
         self.inputs = self.get_input()
         if self.inputs[0]:
             dx -= 5
@@ -203,8 +200,10 @@ class RandomEnemy(Player):
         else:
             self.jump = False
 
-        self.get_closest_higher_platform()
+        self.get_closest_higher_platform_distance()
         self.get_distance_flag()
+        self.get_closest_higher_platform_distance_x()
+        self.get_closest_higher_platform_distance_y()
 
     '''
     gets the distance between the the current agent and the flag pole
@@ -215,24 +214,65 @@ class RandomEnemy(Player):
 
     '''
     gets the closest platform that is higher than the current agent
-    if the highest platform is higher then it return -1  
+    if the highest platform is lower than the agent then it return None 
     Note: lower y value means it is higher in the screen
     '''
 
     def get_closest_higher_platform(self):
         if self.rect.y < platform4.y:
-            #tester
-            print("highest")
-            return -1
+            return None
         platform_pointer_distance = get_distance(ground.x - self.rect.x, ground.y - self.rect.y)
+        platform_pointer = ground
         for platform_current in platforms:
-            current_distance = get_distance(platform_current.x - self.rect.x, platform_current.y - self.rect.y)
-            if platform_pointer_distance < current_distance and self.rect.y < platform_current.y:
+            current_distance = get_distance(platform_current.rect.centerx - self.rect.x, platform_current.rect.centery - self.rect.y)
+            if platform_pointer_distance > current_distance and self.rect.y > platform_current.rect.centery:
+                platform_pointer = platform_current
                 platform_pointer_distance = current_distance
-        #tester
-        print("%d" % platform_pointer_distance)
-        return platform_pointer_distance
+        return platform_pointer
 
+    '''
+    gets the closest platform distance that is higher than the current agent
+    if the highest platform is lower than the agent then it return -1 
+    '''
+
+    def get_closest_higher_platform_distance(self):
+        platform_pointer = self.get_closest_higher_platform()
+        current_distance = 0
+        if platform_pointer is None:
+            current_distance = -1
+        else:
+            current_distance = get_distance(platform_pointer.rect.centerx - self.rect.x, platform_pointer.rect.centery - self.rect.y)
+        return current_distance
+
+    '''
+    gets the x value that is needed to get the center of the closest platform
+    positive value means that the agent is to the left of the center of the closest platform
+    if the highest platform is lower than the agent then it return -99999 
+    '''
+
+    def get_closest_higher_platform_distance_x(self):
+        platform_pointer = self.get_closest_higher_platform()
+        current_distance_x = 0
+        if platform_pointer is None:
+            current_distance_x = -99999
+        else:
+            current_distance_x = platform_pointer.rect.centerx - self.rect.x
+        return current_distance_x
+
+    '''
+    gets the closest platform y value of distance that is higher than the current agent
+    lower numbers mean that it is closer to the center of the closest platform
+    if the highest platform is lower than the agent then it return -1 
+    '''
+
+    def get_closest_higher_platform_distance_y(self):
+        platform_pointer = self.get_closest_higher_platform()
+        current_distance_y = 0
+        if platform_pointer is None:
+            current_distance_y = -1
+        else:
+            current_distance_y = self.rect.y - platform_pointer.rect.centery
+        return current_distance_y
 
 # update background
 def update_bg():
