@@ -299,6 +299,7 @@ platform4 = Platform(WIDTH / 3, (HEIGHT * 5) / 12, WIDTH / 5)
 endFlag = FlagPole((WIDTH * 11) / 30, (HEIGHT * 7) / 20)
 
 # to update all the sprites
+
 allSprites = pygame.sprite.Group()
 # for platform collision
 platforms = pygame.sprite.Group()
