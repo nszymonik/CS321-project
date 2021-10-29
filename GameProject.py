@@ -9,6 +9,7 @@ pygame.font.init()
 endState = 0
 text_time = 0
 level_num = 1
+menu_option = True
 
 # assigning constants
 # set fps
@@ -292,6 +293,23 @@ def update_bg():
                                        ((2 * WIDTH) / 25, (9 * HEIGHT) / 10)])
     pygame.draw.line(SURFACE, BLACK, (WIDTH / 12, HEIGHT), (WIDTH / 12, (9 * HEIGHT) / 10), (int)(WIDTH / 100))
 
+def update_bg_menu():
+    #background
+    SURFACE.fill(LIGHT_BLUE)
+    pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH / 2, 0), (WIDTH, HEIGHT)])
+    pygame.draw.polygon(SURFACE, WHITE, [(int(WIDTH / 3), int(HEIGHT / 3)), (int(WIDTH / 2), 0),
+                                         (int(WIDTH * (2 / 3)), int(HEIGHT / 3))])
+    pygame.draw.line(SURFACE, GREEN, (0, HEIGHT-5), (WIDTH, HEIGHT-5), 10)
+
+    #buttons
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (2 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (3 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+
+    #text
+    start_text = FONT_TIMER.render("Start Game", True, BLACK)
+    SURFACE.blit(start_text, ((19*WIDTH)/45, (17*HEIGHT)/40))
+    quit_text = FONT_TIMER.render("Quit Game", True, BLACK)
+    SURFACE.blit(quit_text, ((19*WIDTH)/45, (5*HEIGHT)/8))
 
 # removes all of the current playing entities and spawns them back at the startflag
 def resetPlayers():
@@ -366,12 +384,25 @@ enemies.add(enemy)
 
 # game running
 while True:
-    # pygame.display.update()
+    #menu
+    update_bg_menu()
+    while menu_option is True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if WIDTH/3 <= mouse[0] <= (WIDTH*2)/3 and (2 * HEIGHT)/5 <= mouse[1] <= (27*HEIGHT)/55:
+                    menu_option = False
+                if WIDTH/3 <= mouse[0] <= (WIDTH*2)/3 and (3 * HEIGHT) / 5 <= mouse[1] <= (38*HEIGHT)/55:
+                    pygame.quit()
+        mouse = pygame.mouse.get_pos()
+        pygame.display.update()
+        framePerSec.tick(FPS)
+   #start of game
     update_bg()
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
-            sys.exit()
     # for end of level
     if endState == 1:
         winText = FONT_WIN_LOSE.render("YOU WIN", True, (0, 0, 0))
