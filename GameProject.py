@@ -166,10 +166,10 @@ class Player(pygame.sprite.Sprite):
 
 
 class RandomEnemy(Player):
-    def __init__(self, x, y, color):
+    def __init__(self, x, y, color, id):
         super().__init__(x, y)
         self.image.fill(color)
-
+        self_id = id
     def get_input(self):
         return [random.getrandbits(1), random.getrandbits(1), random.getrandbits(1)]
 
@@ -315,7 +315,13 @@ def update_bg_menu():
     SURFACE.blit(start_text, ((19*WIDTH)/45, (17*HEIGHT)/40))
     quit_text = FONT_TIMER.render("Quit Game", True, BLACK)
     SURFACE.blit(quit_text, ((19*WIDTH)/45, (5*HEIGHT)/8))
-    title_text = FONT_TITLE.render_to(SURFACE, (WIDTH/16, HEIGHT/4), "Race Up Stair-Case Mountain", BLACK, None, STYLE_DEFAULT, 61, 0)
+    FONT_TITLE.render_to(SURFACE, (WIDTH/16, HEIGHT/4), "Race Up Stair-Case Mountain", BLACK, None, STYLE_DEFAULT, 61, 0)
+
+def generateEnemies():
+     for x in range(100):
+        enemy = RandomEnemy(WIDTH / 12, HEIGHT, RED, x)
+        enemies.add(enemy)
+        allSprites.add(enemy)
 
 # removes all of the current playing entities and spawns them back at the startflag
 def resetPlayers():
@@ -326,9 +332,7 @@ def resetPlayers():
     player = Player(WIDTH / 12, HEIGHT)
     players.add(player)
     allSprites.add(player)
-    enemy = RandomEnemy(WIDTH / 12, HEIGHT, RED)
-    enemies.add(enemy)
-    allSprites.add(enemy)
+    generateEnemies()
 
 
 # gets the distance
@@ -353,8 +357,7 @@ pygame.init()
 pygame.display.set_caption('The Race Up Stair-Case Mountain')
 
 ground = Ground()
-player = Player(WIDTH / 2, HEIGHT / 2)
-enemy = RandomEnemy(WIDTH / 2, HEIGHT / 2, RED)
+player = Player(WIDTH / 12, HEIGHT)
 # platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT * 5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH / 2, (2 * HEIGHT) / 3, WIDTH / 4)
@@ -363,7 +366,6 @@ platform4 = Platform(WIDTH / 3, (HEIGHT * 5) / 12, WIDTH / 5)
 endFlag = FlagPole((WIDTH * 11) / 30, (HEIGHT * 7) / 20)
 
 # to update all the sprites
-
 allSprites = pygame.sprite.Group()
 # for platform collision
 platforms = pygame.sprite.Group()
@@ -373,7 +375,6 @@ players = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 allSprites.add(ground)
 allSprites.add(player)
-allSprites.add(enemy)
 allSprites.add(platform1)
 allSprites.add(platform2)
 allSprites.add(platform3)
@@ -386,7 +387,7 @@ platforms.add(platform3)
 platforms.add(platform4)
 endPoint.add(endFlag)
 players.add(player)
-enemies.add(enemy)
+generateEnemies()
 
 # game running
 while True:
