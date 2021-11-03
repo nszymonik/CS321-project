@@ -1,11 +1,15 @@
 # importing libraries
 import pygame
+from pygame._freetype import STYLE_DEFAULT
 from pygame.locals import *
 import sys
 import random
 import math
+import pygame.freetype
 
+pygame.freetype.init()
 pygame.font.init()
+
 endState = 0
 text_time = 0
 level_num = 1
@@ -43,6 +47,7 @@ SURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
 # Fonts
 FONT_TIMER = pygame.font.SysFont('arial', 16)
 FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
+FONT_TITLE = pygame.freetype.SysFont('arial', 22)
 
 '''
 The ground for the game, unique sprite
@@ -310,6 +315,7 @@ def update_bg_menu():
     SURFACE.blit(start_text, ((19*WIDTH)/45, (17*HEIGHT)/40))
     quit_text = FONT_TIMER.render("Quit Game", True, BLACK)
     SURFACE.blit(quit_text, ((19*WIDTH)/45, (5*HEIGHT)/8))
+    title_text = FONT_TITLE.render_to(SURFACE, (WIDTH/16, HEIGHT/4), "Race Up Stair-Case Mountain", BLACK, None, STYLE_DEFAULT, 61, 0)
 
 # removes all of the current playing entities and spawns them back at the startflag
 def resetPlayers():
@@ -390,11 +396,13 @@ while True:
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
+                sys.exit(0)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if WIDTH/3 <= mouse[0] <= (WIDTH*2)/3 and (2 * HEIGHT)/5 <= mouse[1] <= (27*HEIGHT)/55:
                     menu_option = False
                 if WIDTH/3 <= mouse[0] <= (WIDTH*2)/3 and (3 * HEIGHT) / 5 <= mouse[1] <= (38*HEIGHT)/55:
                     pygame.quit()
+                    sys.exit(0)
         mouse = pygame.mouse.get_pos()
         pygame.display.update()
         framePerSec.tick(FPS)
@@ -403,6 +411,7 @@ while True:
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
+            sys.exit(0)
     # for end of level
     if endState == 1:
         winText = FONT_WIN_LOSE.render("YOU WIN", True, (0, 0, 0))
