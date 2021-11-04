@@ -34,9 +34,12 @@ class Organism():
         return (n < self.numNodes)
     
     def add_edge(self, n1, n2, weight):
+        '''
         sequence = (n1, n2)
         if (self.is_output(n1)) or ((n1 > n2) and (not self.is_output(n2))):
             sequence = (n2, n1)
+        '''
+        sequence = {n1, n2}
         if sequence not in edgeDict:
             edgeDict.append(sequence)
         iD = edgeDict.index(sequence)
@@ -46,11 +49,11 @@ class Organism():
         self.edges[iD][1] = 0 
 
     def add_node(self, iD, weightPrev, weightNext):
-        s = edgeDict[iD]
+        s = edgeDict[iD].copy()
         print(s)
         del self.edges[iD]
-        self.add_edge(s[0], self.numNodes, weightPrev)
-        self.add_edge(self.numNodes, s[1], weightNext)
+        self.add_edge(s.pop(), self.numNodes, weightPrev)
+        self.add_edge(self.numNodes, s.pop(), weightNext)
         print(self.edges)
         print(edgeDict)
         self.numNodes += 1
@@ -67,21 +70,24 @@ class Organism():
 
         return cOrg
 
-    def recurse_node(self, n, inputVals):
+    def recurse_node(self, n, inputVals, visited):
         inp = []
         ret = 0
 
+        visited.add(n)
+
         #print(n)
         for key in self.edges:
-            if edgeDict[key][1] == n:
+            if n in edgeDict[key]:
                 #print(edgeDict[key])
                 inp.append(key)
 
         for i in inp:
-            if self.is_input(edgeDict[i][0]):
-                ret += inputVals[edgeDict[i][0]]*self.edges[i][0]*self.edges[i][1]
-            else:
-                ret += self.recurse_node(edgeDict[i][0], inputVals)*self.edges[i][0]*self.edges[i][1]
+            node = (edgeDict[i] - {n}).pop()
+            if self.is_input(node):
+                ret += inputVals[node]*self.edges[i][0]*self.edges[i][1]
+            elif node not in visited:
+                ret += self.recurse_node(node, inputVals, visited)*self.edges[i][0]*self.edges[i][1]
 
         return sigmoid(ret)
 
@@ -89,7 +95,7 @@ class Organism():
         outputVals = []
 
         for i in range(0, self.numOutputNodes):
-            outputVals.append(self.recurse_node(self.numInputNodes + i, inputVals))
+            outputVals.append(self.recurse_node(self.numInputNodes + i, inputVals, set()))
 
         return outputVals
 
@@ -103,8 +109,10 @@ class Selection():
             otherOrg = temp
         
         for key in otherOrg.edges:
-            if otherOrg.edges[key][1] and key not in newOrg.edges and newOrg.contains_node(edgeDict[key][0]) and newOrg.contains_node(edgeDict[key][1]):
-                newOrg.add_edge(edgeDict[key][0], edgeDict[key][1], otherOrg.edges[key][0])
+            s = edgeDict[key].copy()
+            if otherOrg.edges[key][1] and key not in newOrg.edges and newOrg.contains_node(s.pop()) and newOrg.contains_node(s.pop()):
+                s = edgeDict[key].copy()
+                newOrg.add_edge(s.pop(), s.pop(), otherOrg.edges[key][0])
         
         return newOrg
 
@@ -140,11 +148,22 @@ class Mutation():
         org.edges[iD][0] = random.uniform(-2, 2)
 
     def mutate_link(org):
-        return 0
+        n1 = random.randint(0, org.numNodes - 1)
+        n2 = random.randint(0, org.numNodes - 1)
+        if is_input(n1):
+            while is_input(n2):
+                n2 = random.randint(0, org.numNodes - 1)
+        elif is_output(n1):
+            while is_output(n2):
+                n2 = random.randint(0, org.numNodes - 1)
+
+        org.add_edge(n1, n2, random.uniform(-2, 2))
 
     def mutate_node(org):
-        return 0
-
+        e = list(org.edges.keys())
+        iD = e[random.randint(0, len(e) - 1)]
+        add_node(self, iD, org.edges[iD][0], random.uniform(-2, 2))
+        
     def mutate_gen(newGen, percentage):
         return 0
     
@@ -170,15 +189,15 @@ a.add_edge(6, 5, 0.75)
 a.add_edge(7, 5, 0.5)
 a.add_edge(8, 5, 0.75)
 
-#print(a.forward_prop(tuple((1, 1, 1))))
+print(a.forward_prop(tuple((1, 1, 1))))
 
 b = a.copy_org()
 b.add_edge(6, 4, .88)
 
-#print(a.forward_prop(tuple((1, 1, 1))))
-#print(b.forward_prop(tuple((1, 1, 1))))
-'''
-'''
+print(a.forward_prop(tuple((1, 1, 1))))
+print(b.forward_prop(tuple((1, 1, 1))))
+
+a.fitness = 500
 gen = [a.copy_org(), b.copy_org(), a.copy_org(), b.copy_org(), b.copy_org(), b.copy_org(), a.copy_org(), a.copy_org()]
 selector = Selection()
 selector.selection(gen, len(gen))

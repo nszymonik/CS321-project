@@ -5,16 +5,11 @@
 import pygame
 from pygame.locals import *
 import sys
-import random
-pygame.font.init()
-endState = 0
-text_time = 0
 
 #assigning constants
 #set fps
 FPS = 30
 framePerSec = pygame.time.Clock()
-time = 0
 
 #set frame
 WIDTH = 450
@@ -32,9 +27,6 @@ WHITE = pygame.Color(255, 255, 255)
 
 SURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
 
-#Fonts
-FONT_TIMER = pygame.font.SysFont('arial', 14)
-FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 '''
 The ground for the game, unique sprite
 outputs: a sprite object that needs to be created and added to the sprites group
@@ -71,18 +63,7 @@ class FlagPole(pygame.sprite.Sprite):
         self.image.fill(BLACK)
         pygame.draw.rect(self.image, BLACK, pygame.Rect(xLoc, yLoc, WIDTH/100, HEIGHT/60))
         self.rect = self.image.get_rect(left = xLoc, top = yLoc)
-    #Triggers a type of ending
-    def update(self):
-        hitEnemy = pygame.sprite.spritecollide(self, enemies, False)
-        hitPlayer = pygame.sprite.spritecollide(self, players, False)
-        global text_time
-        global endState
-        if hitEnemy:
-            endState = -1
-            text_time = pygame.time.get_ticks()
-        if hitPlayer:
-            endState = 1
-            text_time = pygame.time.get_ticks()
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -91,60 +72,44 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.rect.w = 10
-        self.rect.h = 10
-        self.inputs = [False, False, False]
+        self.vx = 0
         self.vy = 0
-        self.jump = False
+        self.jump = True
 
     def update(self):
         dx = 0;
         dy = 0;
+        #collison for player
+        hits = pygame.sprite.spritecollide(player, platforms, False)
+        if hits:
+            self.rect.y = hits[0].rect.top - 20
+            self.jump = True
 
         #input
-        self.inputs=self.get_input()
-        if self.inputs[0]:
+        key=pygame.key.get_pressed()
+        if key[pygame.K_LEFT]:
             dx -= 5
-        if self.inputs[1]:
+        if key[pygame.K_RIGHT]:
             dx += 5
-        if self.inputs[2]:
+        if key[pygame.K_UP]:
             if (self.jump):
-                self.vy = -20
+                self.jump = False
+                self.vy = -15
     
-        #gravity
         dy += self.vy
         self.vy = min(self.vy + 1, 10)
-        
-        #initial movements
         self.rect.x += dx
         self.rect.y += dy
-
-        #constraints
-        self.rect = self.rect.clamp(0,0,WIDTH,HEIGHT)
-        hits = pygame.sprite.spritecollide(self, platforms, False)
-        if hits:
-            self.rect.y = hits[0].rect.top - self.rect.h
-            self.vy=0;
+        if(self.rect.y >= HEIGHT - 10):
+            self.vy = 0
             self.jump = True
-        else: 
-            self.jump = False
+        self.rect = self.rect.clamp(pygame.Rect(0,0, WIDTH, HEIGHT - 10))
+        #drawing        
 
-    #Each enemy should have their own version of this, with an algorithm telling it what "keys" to press each frame.
-    #Index 0 is left; 1, right; 2, jump.
-    def get_input(self):
-        key=pygame.key.get_pressed()
-        return [key[pygame.K_LEFT], key[pygame.K_RIGHT], key[pygame.K_UP]]
-
-class RandomEnemy(Player):
-    def __init__(self, x, y, color):
-        super().__init__(x, y)
-        self.image.fill(color)
-    def get_input(self):
-        return [random.getrandbits(1), random.getrandbits(1), random.getrandbits(1)]
-
-#update background 
 def update_bg():
-    SURFACE.fill(LIGHT_BLUE)  
+    SURFACE.fill(LIGHT_BLUE)
+    #caption display
+    pygame.display.set_caption('Test Game')
 
     #drawing mountain background
     pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH/2, 0), (WIDTH, HEIGHT)])
@@ -154,29 +119,18 @@ def update_bg():
     #end flag, remains static
     pygame.draw.polygon(SURFACE, RED, [((11*WIDTH)/30, (23*HEIGHT)/60), ((17*WIDTH)/50, (23*HEIGHT/60)), ((11*WIDTH)/30, (7*HEIGHT)/20)])
 
+
     #start flag, remains static
     pygame.draw.polygon(SURFACE, RED, [((2*WIDTH)/25, (14*HEIGHT)/15), ((17*WIDTH)/300, (14*HEIGHT)/15), ((2*WIDTH)/25, (9*HEIGHT)/10)])
 
-#Timer function
-def timer(time):
-    timerText = FONT_TIMER.render("%.2f"%(time/30), True, (0, 0, 0))
-    SURFACE.blit(timerText,(0, 0))
-
-#end function
-def endLevel(state):
-    global text_time
-    text_time = pygame.time.get_ticks()
-    global endState
-
-
+    #drawing ground level
+    #pygame.draw.line(SURFACE, GREEN, (0, 295), (300, 295), 10)
 
 # initializing the pygame
 pygame.init()
-pygame.display.set_caption('Test Game')
 
 ground = Ground()
-player = Player(WIDTH/2, HEIGHT/2)
-enemy = RandomEnemy(WIDTH/2,HEIGHT/2,RED)
+player = Player(150, 150)
 #platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT*5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH/2, (2*HEIGHT)/3, WIDTH / 3)
@@ -186,15 +140,10 @@ startFlag = FlagPole(WIDTH/12, (9*HEIGHT)/10)
 
 #to update all the sprites
 allSprites = pygame.sprite.Group()
-#for platform collision
+#for collsion
 platforms = pygame.sprite.Group()
-#for flag collision
-endPoint = pygame.sprite.Group()
-players = pygame.sprite.Group()
-enemies = pygame.sprite.Group()
 allSprites.add(ground)
 allSprites.add(player)
-allSprites.add(enemy)
 allSprites.add(platform1)
 allSprites.add(platform2)
 allSprites.add(platform3)
@@ -204,38 +153,18 @@ platforms.add(ground)
 platforms.add(platform1)
 platforms.add(platform2)
 platforms.add(platform3)
-endPoint.add(endFlag)
-players.add(player)
-enemies.add(enemy)
 
 #game running
 while True:
-    #pygame.display.update()
-    update_bg()
+    pygame.display.update()
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-    #for end of level
-    if endState == 1:
-            winText = FONT_WIN_LOSE.render("YOU WIN", True, (0, 0, 0))
-            SURFACE.blit(winText, (HEIGHT / 2, WIDTH / 2))
-            if (pygame.time.get_ticks() - text_time) > 3000:
-                endState = 0
-    elif endState == -1:
-            loseText = FONT_WIN_LOSE.render("YOU LOSE", True, (0, 0, 0))
-            SURFACE.blit(loseText, (HEIGHT / 2, WIDTH / 2))
-            if (pygame.time.get_ticks() - text_time) > 3000:
-                endState = 0
-
-    # for timer
-    time = time + 1
-    timer(time)
-
-    #updating the textures
-    allSprites.update()
-    allSprites.draw(SURFACE)
+    update_bg()
+    for entity in allSprites:
+        entity.update()
+        allSprites.update()
+        allSprites.draw(SURFACE)
     pygame.display.update()
-
-    #tick frame
     framePerSec.tick(FPS)
