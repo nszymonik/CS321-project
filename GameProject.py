@@ -170,15 +170,15 @@ class RandomEnemy(Player):
     def __init__(self, x, y, color):
         super().__init__(x, y)
         self.image.fill(color)
-        entity_time = 0
+        self.entity_fitness = 0
 
     def get_input(self):
         return [random.getrandbits(1), random.getrandbits(1), random.getrandbits(1)]
 
     # It is repeated in order to add in the two functions, (get_closest_higher_platform() and get_distance_flag())
     def update(self):
-        dx = 0;
-        dy = 0;
+        dx = 0
+        dy = 0
 
         input
         self.inputs = self.get_input()
@@ -215,7 +215,7 @@ class RandomEnemy(Player):
         if hit_flag:
             global time
             entity_time = time/30
-            print(entity_time)
+            self.entity_fitness = self.fitness(entity_time)
 
         self.get_closest_higher_platform_distance()
         self.get_distance_flag()
@@ -293,6 +293,12 @@ class RandomEnemy(Player):
             current_distance_y = self.rect.y - platform_pointer.rect.centery
         return current_distance_y
 
+    # gets the fitness for the enemy
+    def fitness(self, entity_time):
+        constant1 = 5
+        constant2 = 10
+        return constant1/(1 + self.get_distance_flag()) + constant2/(1 + entity_time)
+
 
 # update background
 def update_bg():
@@ -358,7 +364,7 @@ def get_distance(x, y):
     return int(math.sqrt((x ** 2) + (y ** 2)))
 
 
-# prints the time of the timer
+#prints the time of the timer
 def timer():
     timer_text = FONT_TIMER.render("Time %.2f" % (time / 30), True, BLACK)
     SURFACE.blit(timer_text, (0, 0))
