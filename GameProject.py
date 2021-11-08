@@ -1,5 +1,6 @@
 # importing libraries
 import pygame
+import NEAT
 from pygame.locals import *
 import sys
 import random
