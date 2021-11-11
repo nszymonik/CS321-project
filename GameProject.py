@@ -84,7 +84,6 @@ inputs: xLoc = the left most location, yLoc = the top most location
 outputs: a sprite object that needs to be created and added to the sprites group
 '''
 
-
 class FlagPole(pygame.sprite.Sprite):
     def __init__(self, xLoc, yLoc):
         super().__init__()
@@ -160,20 +159,19 @@ class Player(pygame.sprite.Sprite):
         return [key[pygame.K_LEFT], key[pygame.K_RIGHT], key[pygame.K_UP]]
 
 
-class RandomEnemy(Player):
-    def __init__(self, x, y, color):
+class Enemy(Player):
+    def __init__(self, x, y, org):
         super().__init__(x, y)
-        self.image.fill(color)
-
-    def get_input(self):
-        return [random.getrandbits(1), random.getrandbits(1), random.getrandbits(1)]
+        self.image.fill((random.randrange(0, 256), random.randrange(0, 256), random.randrange(0,256), 192));
+        self.organism = org;
+        self.outputs = [];
+        self.choice = -1;
 
     #It is repeated in order to add in the two functions, (get_closest_higher_platform() and get_distance_flag())
     def update(self):
+        super()
         dx = 0;
         dy = 0;
-
-        input
         self.inputs = self.get_input()
         if self.inputs[0]:
             dx -= 5
@@ -201,19 +199,23 @@ class RandomEnemy(Player):
         else:
             self.jump = False
 
-        self.get_closest_higher_platform_distance()
-        self.get_distance_flag()
-        self.get_closest_higher_platform_distance_x()
-        self.get_closest_higher_platform_distance_y()
-
+    def get_input(self):
+        self.outputs = self.organism.forward_prop(tuple((
+            self.get_closest_higher_platform_distance(), 
+            self.get_distance_flag(), 
+            self.get_closest_higher_platform_distance_x(), 
+            self.get_closest_higher_platform_distance_y())))
+        print(self.outputs)
+        self.choice = self.outputs.index(max(self.outputs))
+        return [self.choice in range(2), self.choice in range(3,5), self.choice in range(1, 4)]; 
+        
     '''
     gets the distance between the the current agent and the flag pole
-    '''
-
+    '''    
     def get_distance_flag(self):
         return get_distance(END_FLAG_LOCATION[0] - self.rect.x, END_FLAG_LOCATION[1] - self.rect.y)
-
-    '''
+    
+    '''    
     gets the closest platform that is higher than the current agent
     if the highest platform is lower than the agent then it return None 
     Note: lower y value means it is higher in the screen
@@ -303,7 +305,7 @@ def resetPlayers():
     player = Player(WIDTH / 12, HEIGHT)
     players.add(player)
     allSprites.add(player)
-    enemy = RandomEnemy(WIDTH / 12, HEIGHT, RED)
+    enemy = Enemy(WIDTH / 12, HEIGHT, RED)
     enemies.add(enemy)
     allSprites.add(enemy)
 
@@ -311,7 +313,6 @@ def resetPlayers():
 # gets the distance
 def get_distance(x, y):
     return int(math.sqrt((x ** 2) + (y ** 2)))
-
 
 # prints the time of the timer
 def timer(time_num):
@@ -331,7 +332,16 @@ pygame.display.set_caption('The Race Up Stair-Case Mountain')
 
 ground = Ground()
 player = Player(WIDTH / 2, HEIGHT / 2)
-enemy = RandomEnemy(WIDTH / 2, HEIGHT / 2, RED)
+
+#Creating a group of organisms
+
+allOrganisms = []; 
+for i in range(1):
+    orgTemp = NEAT.Organism(4,5)
+    for j in range(4):
+        for k in range(4, 9):
+            orgTemp.add_edge(j, k, random.random()) #Starting with random seed values. Jus' to see if something different happens.
+    allOrganisms.append(orgTemp)
 # platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT * 5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH / 2, (2 * HEIGHT) / 3, WIDTH / 4)
@@ -339,8 +349,9 @@ platform3 = Platform((7 * WIDTH) / 12, HEIGHT / 2, WIDTH / 8)
 platform4 = Platform(WIDTH / 3, (HEIGHT * 5) / 12, WIDTH / 5)
 endFlag = FlagPole((WIDTH * 11) / 30, (HEIGHT * 7) / 20)
 
-# to update all the sprites
 
+
+# to update all the sprites
 allSprites = pygame.sprite.Group()
 # for platform collision
 platforms = pygame.sprite.Group()
@@ -350,7 +361,11 @@ players = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 allSprites.add(ground)
 allSprites.add(player)
-allSprites.add(enemy)
+
+for i in range(len(allOrganisms)): #One enemy is created for each organism.
+    enmTemp = Enemy(WIDTH/2, HEIGHT/2, allOrganisms[i])
+    allSprites.add(enmTemp)
+    enemies.add(enmTemp) 
 allSprites.add(platform1)
 allSprites.add(platform2)
 allSprites.add(platform3)
@@ -363,7 +378,6 @@ platforms.add(platform3)
 platforms.add(platform4)
 endPoint.add(endFlag)
 players.add(player)
-enemies.add(enemy)
 
 # game running
 while True:

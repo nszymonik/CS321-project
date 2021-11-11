@@ -184,7 +184,7 @@ class Mutation():
                     self.mutate_node(muteOrg)
             
     
-
+'''
 a = Organism(3, 3)
 a.add_edge(0, 3, 0.5)
 a.add_edge(1, 3, 0.5)
@@ -227,4 +227,4 @@ for i in range(0, len(gen)):
 
 for i in range(0, len(gen)):
     print(gen[i].forward_prop(tuple((1, 1, 1))))
-
+'''
