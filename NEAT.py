@@ -100,7 +100,8 @@ class Organism():
         return outputVals
 
 class Selection():
-    def crossbreed(self, org1, org2):
+    @staticmethod
+    def crossbreed(org1, org2):
         otherOrg = org1.copy_org()
         newOrg = org2.copy_org()
         if org1.fitness > org2.fitness:
@@ -116,7 +117,8 @@ class Selection():
         
         return newOrg
 
-    def selection(self, oldGen, population):
+    @staticmethod
+    def selection(oldGen, population):
         newGen = []
 
         oldGen.sort(key=lambda x: x.fitness, reverse=True)
@@ -127,7 +129,7 @@ class Selection():
             newGen.append(oldGen[random.randint(0,len(oldGen) - 1)])
 
         for i in range(int(population/2 + 0.5) - 1, population):
-            newGen.append(self.crossbreed(oldGen[random.randint(0,len(oldGen) - 1)], oldGen[random.randint(0,len(oldGen) - 1)]))
+            newGen.append(Selection.crossbreed(oldGen[random.randint(0,len(oldGen) - 1)], oldGen[random.randint(0,len(oldGen) - 1)]))
         
         return newGen
 

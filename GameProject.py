@@ -44,6 +44,8 @@ SURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
 FONT_TIMER = pygame.font.SysFont('arial', 16)
 FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 
+#organism count
+ORG_POPULATION = 20 #MUST BE DIVISIBLE BY FOUR
 '''
 The ground for the game, unique sprite
 outputs: a sprite object that needs to be created and added to the sprites group
@@ -59,14 +61,11 @@ class Ground(pygame.sprite.Sprite):
         self.x = self.rect.x
         self.y = self.rect.y
 
-
 '''
 The platforms throughout the level
 inputs: xLoc = the left most location, yLoc = the top most location, width = the length of the platform
 outputs: a sprite object that needs to be created and added to the sprites group
 '''
-
-
 class Platform(pygame.sprite.Sprite):
     def __init__(self, xLoc, yLoc, width):
         super().__init__()
@@ -76,7 +75,6 @@ class Platform(pygame.sprite.Sprite):
         self.image.fill(LIGHT_GREY)
         pygame.draw.rect(self.image, LIGHT_GREY, pygame.Rect(xLoc, yLoc, width, HEIGHT / 30))
         self.rect = self.image.get_rect(left=xLoc, top=yLoc, )
-
 
 '''  
 The Flag pole for the start and end flags
@@ -104,7 +102,6 @@ class FlagPole(pygame.sprite.Sprite):
         if hitPlayer:
             endState = 1
             text_time = pygame.time.get_ticks()
-
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -158,7 +155,6 @@ class Player(pygame.sprite.Sprite):
         key = pygame.key.get_pressed()
         return [key[pygame.K_LEFT], key[pygame.K_RIGHT], key[pygame.K_UP]]
 
-
 class Enemy(Player):
     def __init__(self, x, y, org):
         super().__init__(x, y)
@@ -180,15 +176,12 @@ class Enemy(Player):
         if self.inputs[2]:
             if (self.jump):
                 self.vy = -10
-
         # gravity
         dy += self.vy
         self.vy = min(self.vy + 1, 10)
-
         # initial movements
         self.rect.x += dx
         self.rect.y += dy
-
         # constraints
         self.rect = self.rect.clamp(0, 0, WIDTH, HEIGHT)
         hits = pygame.sprite.spritecollide(self, platforms, False)
@@ -220,7 +213,6 @@ class Enemy(Player):
     if the highest platform is lower than the agent then it return None 
     Note: lower y value means it is higher in the screen
     '''
-
     def get_closest_higher_platform(self):
         if self.rect.y < platform4.y:
             return None
@@ -232,12 +224,11 @@ class Enemy(Player):
                 platform_pointer = platform_current
                 platform_pointer_distance = current_distance
         return platform_pointer
-
+    
     '''
     gets the closest platform distance that is higher than the current agent
     if the highest platform is lower than the agent then it return -1 
     '''
-
     def get_closest_higher_platform_distance(self):
         platform_pointer = self.get_closest_higher_platform()
         current_distance = 0
@@ -252,7 +243,6 @@ class Enemy(Player):
     positive value means that the agent is to the left of the center of the closest platform
     if the highest platform is lower than the agent then it return -99999 
     '''
-
     def get_closest_higher_platform_distance_x(self):
         platform_pointer = self.get_closest_higher_platform()
         current_distance_x = 0
@@ -267,7 +257,6 @@ class Enemy(Player):
     lower numbers mean that it is closer to the center of the closest platform
     if the highest platform is lower than the agent then it return -1 
     '''
-
     def get_closest_higher_platform_distance_y(self):
         platform_pointer = self.get_closest_higher_platform()
         current_distance_y = 0
@@ -297,7 +286,8 @@ def update_bg():
 
 
 # removes all of the current playing entities and spawns them back at the startflag
-def resetPlayers():
+# also updates the network
+def resetPlayers(orgList):
     global player
     for entity in enemies:
         entity.kill()
@@ -305,9 +295,12 @@ def resetPlayers():
     player = Player(WIDTH / 12, HEIGHT)
     players.add(player)
     allSprites.add(player)
-    enemy = Enemy(WIDTH / 12, HEIGHT, RED)
-    enemies.add(enemy)
-    allSprites.add(enemy)
+    orgList = NEAT.Selection.selection(orgList, ORG_POPULATION)
+    
+    for i in range(len(allOrganisms)): #One enemy is created for each organism.
+        enmTemp = Enemy(WIDTH/2, HEIGHT/2, orgList[i])
+        allSprites.add(enmTemp)
+        enemies.add(enmTemp) 
 
 
 # gets the distance
@@ -319,12 +312,10 @@ def timer(time_num):
     timer_text = FONT_TIMER.render("Time %.2f" % (time / 30), True, BLACK)
     SURFACE.blit(timer_text, (0, 0))
 
-
 # prints the level
 def level(level_num):
     level_text = FONT_TIMER.render("level %d" % level_num, True, BLACK)
     SURFACE.blit(level_text, (WIDTH - (WIDTH / 12), 0))
-
 
 # initializing the pygame
 pygame.init()
@@ -335,21 +326,20 @@ player = Player(WIDTH / 2, HEIGHT / 2)
 
 #Creating a group of organisms
 
-allOrganisms = []; 
-for i in range(1):
+allOrganisms = []
+for i in range(ORG_POPULATION):
     orgTemp = NEAT.Organism(4,5)
     for j in range(4):
         for k in range(4, 9):
             orgTemp.add_edge(j, k, random.random()) #Starting with random seed values. Jus' to see if something different happens.
     allOrganisms.append(orgTemp)
+
 # platform numbers go from the top so the platform that has the end flag is the highest number
 platform1 = Platform(WIDTH / 6, (HEIGHT * 5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH / 2, (2 * HEIGHT) / 3, WIDTH / 4)
 platform3 = Platform((7 * WIDTH) / 12, HEIGHT / 2, WIDTH / 8)
 platform4 = Platform(WIDTH / 3, (HEIGHT * 5) / 12, WIDTH / 5)
 endFlag = FlagPole((WIDTH * 11) / 30, (HEIGHT * 7) / 20)
-
-
 
 # to update all the sprites
 allSprites = pygame.sprite.Group()
@@ -395,7 +385,7 @@ while True:
             endState = 0
             time = 0
             level_num = level_num + 1
-            resetPlayers()
+            resetPlayers(allOrganisms)
 
     elif endState == -1:
         loseText = FONT_WIN_LOSE.render("YOU LOSE", True, (0, 0, 0))
@@ -409,7 +399,6 @@ while True:
     time = time + 1
     timer(time)
     level(level_num)
-
     # updating the textures
     allSprites.update()
     allSprites.draw(SURFACE)
