@@ -45,8 +45,8 @@ FONT_TIMER = pygame.font.SysFont('arial', 16)
 FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 
 #organism count
-ORG_POPULATION = 20 #MUST BE DIVISIBLE BY FOUR
-ORG_MUTATION = 0.1 #Max proportion of the population to mutate
+ORG_POPULATION = 40 #MUST BE DIVISIBLE BY FOUR
+ORG_MUTATION = 0.5 #Max proportion of the population to mutate
 '''
 The ground for the game, unique sprite
 outputs: a sprite object that needs to be created and added to the sprites group
@@ -163,6 +163,7 @@ class Enemy(Player):
         self.organism = org;
         self.outputs = [];
         self.choice = -1;
+        self.closest = 99999; #The closest this enemy ever gets to the flag. Using this instead of immediate distance, as the player could manipulate that to quash certain organisms.
 
     #It is repeated in order to add in the two functions, (get_closest_higher_platform() and get_distance_flag())
     def update(self):
@@ -206,7 +207,9 @@ class Enemy(Player):
     gets the distance between the the current agent and the flag pole
     '''    
     def get_distance_flag(self):
-        return get_distance(END_FLAG_LOCATION[0] - self.rect.x, END_FLAG_LOCATION[1] - self.rect.y)
+        localOut = get_distance(END_FLAG_LOCATION[0] - self.rect.x, END_FLAG_LOCATION[1] - self.rect.y)
+        self.closest = min(self.closest, localOut)
+        return localOut
     
     '''    
     gets the closest platform that is higher than the current agent
@@ -241,13 +244,13 @@ class Enemy(Player):
     '''
     gets the x value that is needed to get the center of the closest platform
     positive value means that the agent is to the left of the center of the closest platform
-    if the highest platform is lower than the agent then it return -99999 
+    if the highest platform is lower than the agent then it return 0 
     '''
     def get_closest_higher_platform_distance_x(self):
         platform_pointer = self.get_closest_higher_platform()
         current_distance_x = 0
         if platform_pointer is None:
-            current_distance_x = -99999
+            current_distance_x = 0;
         else:
             current_distance_x = platform_pointer.rect.centerx - self.rect.x
         return current_distance_x
@@ -261,7 +264,7 @@ class Enemy(Player):
         platform_pointer = self.get_closest_higher_platform()
         current_distance_y = 0
         if platform_pointer is None:
-            current_distance_y = -1
+            current_distance_y = 0
         else:
             current_distance_y = self.rect.y - platform_pointer.rect.centery
         return current_distance_y
@@ -290,7 +293,7 @@ def update_bg():
 def resetPlayers(orgList):
     global player
     for entity in enemies:
-        entity.organism.fitness = 1000 / (1 + entity.get_distance_flag())
+        entity.organism.fitness = 1000 / (1 + entity.closest)
         entity.kill()
     player.kill()
     player = Player(WIDTH / 12, HEIGHT)
