@@ -194,10 +194,10 @@ class Enemy(Player):
 
     def get_input(self):
         self.outputs = self.organism.forward_prop(tuple((
-            self.get_closest_higher_platform_distance(), 
-            self.get_distance_flag(), 
-            self.get_closest_higher_platform_distance_x(), 
-            self.get_closest_higher_platform_distance_y())))
+            NEAT.sigmoid(self.get_closest_higher_platform_distance()), 
+            NEAT.sigmoid(self.get_distance_flag()), 
+            NEAT.sigmoid(self.get_closest_higher_platform_distance_x()), 
+            NEAT.sigmoid(self.get_closest_higher_platform_distance_y()))))
         print(self.outputs)
         self.choice = self.outputs.index(max(self.outputs))
         return [self.choice in range(2), self.choice in range(3,5), self.choice in range(1, 4)]; 
