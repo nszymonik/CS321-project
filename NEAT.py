@@ -50,12 +50,11 @@ class Organism():
 
     def add_node(self, iD, weightPrev, weightNext):
         s = edgeDict[iD].copy()
-        print(s)
         del self.edges[iD]
         self.add_edge(s.pop(), self.numNodes, weightPrev)
         self.add_edge(self.numNodes, s.pop(), weightNext)
-        print(self.edges)
-        print(edgeDict)
+        #print(self.edges)
+        #print(edgeDict)
         self.numNodes += 1
 
     def copy_org(self):
@@ -134,22 +133,26 @@ class Selection():
         return newGen
 
 class Mutation():
-    def mutate_enable_disable(self, org):
+    @staticmethod
+    def mutate_enable_disable(org):
         e = list(org.edges.keys())
         iD = e[random.randint(0, len(e) - 1)]
         org.edges[iD] = (org.edges[iD][0], 1 - org.edges[iD][1])
 
-    def mutate_weight_shift(self, org):
+    @staticmethod
+    def mutate_weight_shift(org):
         e = list(org.edges.keys())
         iD = e[random.randint(0, len(e) - 1)]
         org.edges[iD] = (org.edges[iD][0]*random.uniform(0, 2), 1)
         
-    def mutate_weight_random(self, org):
+    @staticmethod
+    def mutate_weight_random(org):
         e = list(org.edges.keys())
         iD = e[random.randint(0, len(e) - 1)]
         org.edges[iD] = (random.uniform(-2, 2), org.edges[iD][1])
 
-    def mutate_link(self, org):
+    @staticmethod
+    def mutate_link(org):
         n1 = random.randint(0, org.numNodes - 1)
         n2 = random.randint(0, org.numNodes - 1)
         if org.is_input(n1):
@@ -161,30 +164,31 @@ class Mutation():
 
         org.add_edge(n1, n2, random.uniform(-2, 2))
 
-    def mutate_node(self, org):
+    @staticmethod
+    def mutate_node(org):
         e = list(org.edges.keys())
         iD = e[random.randint(0, len(e) - 1)]
         org.add_node(iD, org.edges[iD][0], random.uniform(-2, 2))
         
-    def mutate_gen(self, gen, percentage):
+    @staticmethod
+    def mutate_gen(gen, percentage):
         numMutes = int(len(gen)*percentage)
         for i in range(0, numMutes):
             muteOrg = gen[random.randint(0, numMutes - 1)]
             if len(muteOrg.edges) == 0:
-                self.mutate_link(muteOrg)
+                Mutation.mutate_link(muteOrg)
             else:
                 muteType = random.randint(0, 4)
                 if muteType == 0:
-                    self.mutate_enable_disable(muteOrg)
+                    Mutation.mutate_enable_disable(muteOrg)
                 elif muteType == 1:
-                    self.mutate_weight_shift(muteOrg)
+                    Mutation.mutate_weight_shift(muteOrg)
                 elif muteType == 2:
-                    self.mutate_weight_random(muteOrg)
+                    Mutation.mutate_weight_random(muteOrg)
                 elif muteType == 3:
-                    self.mutate_link(muteOrg)
+                    Mutation.mutate_link(muteOrg)
                 else:
-                    self.mutate_node(muteOrg)
-            
+                    Mutation.mutate_node(muteOrg)    
     
 '''
 a = Organism(3, 3)

@@ -46,6 +46,7 @@ FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 
 #organism count
 ORG_POPULATION = 20 #MUST BE DIVISIBLE BY FOUR
+ORG_MUTATION = 0.1 #Max proportion of the population to mutate
 '''
 The ground for the game, unique sprite
 outputs: a sprite object that needs to be created and added to the sprites group
@@ -296,6 +297,7 @@ def resetPlayers(orgList):
     players.add(player)
     allSprites.add(player)
     orgList = NEAT.Selection.selection(orgList, ORG_POPULATION)
+    NEAT.Mutation.mutate_gen(orgList, ORG_MUTATION)
     
     for i in range(len(allOrganisms)): #One enemy is created for each organism.
         enmTemp = Enemy(WIDTH/12, HEIGHT, orgList[i])
@@ -322,7 +324,7 @@ pygame.init()
 pygame.display.set_caption('The Race Up Stair-Case Mountain')
 
 ground = Ground()
-player = Player(WIDTH / 2, HEIGHT / 2)
+player = Player(WIDTH / 12, HEIGHT)
 
 #Creating a group of organisms
 
@@ -353,7 +355,7 @@ allSprites.add(ground)
 allSprites.add(player)
 
 for i in range(len(allOrganisms)): #One enemy is created for each organism.
-    enmTemp = Enemy(WIDTH/2, HEIGHT/2, allOrganisms[i])
+    enmTemp = Enemy(WIDTH/12, HEIGHT, allOrganisms[i])
     allSprites.add(enmTemp)
     enemies.add(enmTemp) 
 allSprites.add(platform1)
