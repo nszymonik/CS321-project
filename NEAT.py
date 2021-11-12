@@ -156,6 +156,9 @@ class Mutation():
         elif org.is_output(n1):
             while org.is_output(n2):
                 n2 = random.randint(0, org.numNodes - 1)
+        elif n1 == n2:
+            while n1 == n2:
+                n2 = random.randint(0, org.numNodes - 1)
 
         org.add_edge(n1, n2, random.uniform(-2, 2))
 
