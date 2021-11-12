@@ -1,21 +1,27 @@
 # importing libraries
 import pygame
+from pygame._freetype import STYLE_DEFAULT
 import NEAT
 from pygame.locals import *
 import sys
 import random
 import math
+import pygame.freetype
 
+pygame.freetype.init()
 pygame.font.init()
+
 endState = 0
-text_time = 0
 level_num = 1
+menu_option = True
+time = 0
+text_time = 0
+pause_menu = False
 
 # assigning constants
 # set fps
 FPS = 30
 framePerSec = pygame.time.Clock()
-time = 0
 
 # set frame
 WIDTH = 450
@@ -43,6 +49,7 @@ SURFACE = pygame.display.set_mode((WIDTH, HEIGHT))
 # Fonts
 FONT_TIMER = pygame.font.SysFont('arial', 16)
 FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
+FONT_TITLE = pygame.freetype.SysFont('arial', 22)
 
 #organism count
 ORG_POPULATION = 20 #MUST BE DIVISIBLE BY FOUR
@@ -67,14 +74,14 @@ inputs: xLoc = the left most location, yLoc = the top most location, width = the
 outputs: a sprite object that needs to be created and added to the sprites group
 '''
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, xLoc, yLoc, width):
+    def __init__(self, x_loc, y_loc, width):
         super().__init__()
-        self.x = xLoc
-        self.y = yLoc
+        self.x = x_loc
+        self.y = y_loc
         self.image = pygame.Surface((width, HEIGHT / 30))
         self.image.fill(LIGHT_GREY)
-        pygame.draw.rect(self.image, LIGHT_GREY, pygame.Rect(xLoc, yLoc, width, HEIGHT / 30))
-        self.rect = self.image.get_rect(left=xLoc, top=yLoc, )
+        pygame.draw.rect(self.image, LIGHT_GREY, pygame.Rect(x_loc, y_loc, width, HEIGHT / 30))
+        self.rect = self.image.get_rect(left=x_loc, top=y_loc, )
 
 '''  
 The Flag pole for the start and end flags
@@ -83,23 +90,23 @@ outputs: a sprite object that needs to be created and added to the sprites group
 '''
 
 class FlagPole(pygame.sprite.Sprite):
-    def __init__(self, xLoc, yLoc):
+    def __init__(self, x_loc, y_loc):
         super().__init__()
         self.image = pygame.Surface((WIDTH / 100, (2 * HEIGHT) / 25))
         self.image.fill(BLACK)
-        pygame.draw.rect(self.image, BLACK, pygame.Rect(xLoc, yLoc, WIDTH / 100, HEIGHT / 60))
-        self.rect = self.image.get_rect(left=xLoc, top=yLoc)
+        pygame.draw.rect(self.image, BLACK, pygame.Rect(x_loc, y_loc, WIDTH / 100, HEIGHT / 60))
+        self.rect = self.image.get_rect(left=x_loc, top=y_loc)
 
     # Triggers a type of ending
     def update(self):
-        hitEnemy = pygame.sprite.spritecollide(self, enemies, True)
-        hitPlayer = pygame.sprite.spritecollide(self, players, True)
+        hit_enemy = pygame.sprite.spritecollide(self, enemies, True)
+        hit_player = pygame.sprite.spritecollide(self, players, True)
         global text_time
         global endState
-        if hitEnemy:
+        if hit_enemy:
             endState = -1
             text_time = pygame.time.get_ticks()
-        if hitPlayer:
+        if hit_player:
             endState = 1
             text_time = pygame.time.get_ticks()
 
@@ -118,8 +125,8 @@ class Player(pygame.sprite.Sprite):
         self.jump = False
 
     def update(self):
-        dx = 0;
-        dy = 0;
+        dx = 0
+        dy = 0
 
         # input
         self.inputs = self.get_input()
@@ -128,7 +135,7 @@ class Player(pygame.sprite.Sprite):
         if self.inputs[1]:
             dx += 5
         if self.inputs[2]:
-            if (self.jump):
+            if self.jump:
                 self.vy = -10
 
         # gravity
@@ -144,7 +151,7 @@ class Player(pygame.sprite.Sprite):
         hits = pygame.sprite.spritecollide(self, platforms, False)
         if hits:
             self.rect.y = hits[0].rect.top - self.rect.h
-            self.vy = 0;
+            self.vy = 0
             self.jump = True
         else:
             self.jump = False
@@ -163,7 +170,7 @@ class Enemy(Player):
         self.outputs = [];
         self.choice = -1;
 
-    #It is repeated in order to add in the two functions, (get_closest_higher_platform() and get_distance_flag())
+    # It is repeated in order to add in the two functions, (get_closest_higher_platform() and get_distance_flag())
     def update(self):
         super()
         dx = 0;
@@ -174,7 +181,7 @@ class Enemy(Player):
         if self.inputs[1]:
             dx += 5
         if self.inputs[2]:
-            if (self.jump):
+            if self.jump:
                 self.vy = -10
         # gravity
         dy += self.vy
@@ -194,20 +201,26 @@ class Enemy(Player):
 
     def get_input(self):
         self.outputs = self.organism.forward_prop(tuple((
-            self.get_closest_higher_platform_distance(), 
-            self.get_distance_flag(), 
-            self.get_closest_higher_platform_distance_x(), 
+            self.get_closest_higher_platform_distance(),
+            self.get_distance_flag(),
+            self.get_closest_higher_platform_distance_x(),
             self.get_closest_higher_platform_distance_y())))
         print(self.outputs)
         self.choice = self.outputs.index(max(self.outputs))
-        return [self.choice in range(2), self.choice in range(3,5), self.choice in range(1, 4)]; 
-        
+        return [self.choice in range(2), self.choice in range(3,5), self.choice in range(1, 4)];
+
+        # flag collision, records time
+        hit_flag = pygame.sprite.spritecollide(self, endPoint, False)
+        if hit_flag:
+            global time
+            entity_time = time/30
+            self.entity_fitness = self.fitness(entity_time)
     '''
     gets the distance between the the current agent and the flag pole
-    '''    
+    '''
     def get_distance_flag(self):
         return get_distance(END_FLAG_LOCATION[0] - self.rect.x, END_FLAG_LOCATION[1] - self.rect.y)
-    
+
     '''    
     gets the closest platform that is higher than the current agent
     if the highest platform is lower than the agent then it return None 
@@ -224,7 +237,7 @@ class Enemy(Player):
                 platform_pointer = platform_current
                 platform_pointer_distance = current_distance
         return platform_pointer
-    
+
     '''
     gets the closest platform distance that is higher than the current agent
     if the highest platform is lower than the agent then it return -1 
@@ -266,6 +279,13 @@ class Enemy(Player):
             current_distance_y = self.rect.y - platform_pointer.rect.centery
         return current_distance_y
 
+    # gets the fitness for the enemy
+    def fitness(self, entity_time):
+        constant1 = 5
+        constant2 = 10
+        return constant1/(1 + self.get_distance_flag()) + constant2/(1 + entity_time)
+
+
 # update background
 def update_bg():
     SURFACE.fill(LIGHT_BLUE)
@@ -284,6 +304,43 @@ def update_bg():
                                        ((2 * WIDTH) / 25, (9 * HEIGHT) / 10)])
     pygame.draw.line(SURFACE, BLACK, (WIDTH / 12, HEIGHT), (WIDTH / 12, (9 * HEIGHT) / 10), (int)(WIDTH / 100))
 
+def update_pause():
+    # background
+    SURFACE.fill(LIGHT_BLUE)
+    pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH / 2, 0), (WIDTH, HEIGHT)])
+    pygame.draw.polygon(SURFACE, WHITE, [(int(WIDTH / 3), int(HEIGHT / 3)), (int(WIDTH / 2), 0),
+                                         (int(WIDTH * (2 / 3)), int(HEIGHT / 3))])
+    pygame.draw.line(SURFACE, GREEN, (0, HEIGHT - 5), (WIDTH, HEIGHT - 5), 10)
+
+    # buttons
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (2 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (3 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+
+    start_text = FONT_TIMER.render("Resume Game", True, BLACK)
+    SURFACE.blit(start_text, ((19 * WIDTH) / 45, (17 * HEIGHT) / 40))
+    quit_text = FONT_TIMER.render("Quit Game", True, BLACK)
+    SURFACE.blit(quit_text, ((19 * WIDTH) / 45, (5 * HEIGHT) / 8))
+    FONT_TITLE.render_to(SURFACE, (WIDTH / 8, HEIGHT / 2), "Pause", BLACK, None, STYLE_DEFAULT,61, 0)
+
+def update_bg_menu():
+    # background
+    SURFACE.fill(LIGHT_BLUE)
+    pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH / 2, 0), (WIDTH, HEIGHT)])
+    pygame.draw.polygon(SURFACE, WHITE, [(int(WIDTH / 3), int(HEIGHT / 3)), (int(WIDTH / 2), 0),
+                                         (int(WIDTH * (2 / 3)), int(HEIGHT / 3))])
+    pygame.draw.line(SURFACE, GREEN, (0, HEIGHT - 5), (WIDTH, HEIGHT - 5), 10)
+
+    # buttons
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (2 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (3 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+
+    # text
+    start_text = FONT_TIMER.render("Start Game", True, BLACK)
+    SURFACE.blit(start_text, ((19 * WIDTH) / 45, (17 * HEIGHT) / 40))
+    quit_text = FONT_TIMER.render("Quit Game", True, BLACK)
+    SURFACE.blit(quit_text, ((19 * WIDTH) / 45, (5 * HEIGHT) / 8))
+    FONT_TITLE.render_to(SURFACE, (WIDTH / 16, HEIGHT / 4), "Race Up Stair-Case Mountain", BLACK, None, STYLE_DEFAULT,61, 0)
+
 
 # removes all of the current playing entities and spawns them back at the startflag
 # also updates the network
@@ -296,32 +353,34 @@ def resetPlayers(orgList):
     players.add(player)
     allSprites.add(player)
     orgList = NEAT.Selection.selection(orgList, ORG_POPULATION)
-    
+
     for i in range(len(allOrganisms)): #One enemy is created for each organism.
         enmTemp = Enemy(WIDTH/2, HEIGHT/2, orgList[i])
         allSprites.add(enmTemp)
-        enemies.add(enmTemp) 
+        enemies.add(enmTemp)
 
 
 # gets the distance
 def get_distance(x, y):
     return int(math.sqrt((x ** 2) + (y ** 2)))
 
-# prints the time of the timer
-def timer(time_num):
+
+#prints the time of the timer
+def timer():
     timer_text = FONT_TIMER.render("Time %.2f" % (time / 30), True, BLACK)
     SURFACE.blit(timer_text, (0, 0))
 
 # prints the level
-def level(level_num):
+def level():
     level_text = FONT_TIMER.render("level %d" % level_num, True, BLACK)
-    SURFACE.blit(level_text, (WIDTH - (WIDTH / 12), 0))
+    SURFACE.blit(level_text, (WIDTH - (WIDTH / 9), 0))
 
 # initializing the pygame
 pygame.init()
 pygame.display.set_caption('The Race Up Stair-Case Mountain')
 
 ground = Ground()
+player = Player(WIDTH / 12, HEIGHT)
 player = Player(WIDTH / 2, HEIGHT / 2)
 
 #Creating a group of organisms
@@ -355,7 +414,7 @@ allSprites.add(player)
 for i in range(len(allOrganisms)): #One enemy is created for each organism.
     enmTemp = Enemy(WIDTH/2, HEIGHT/2, allOrganisms[i])
     allSprites.add(enmTemp)
-    enemies.add(enmTemp) 
+    enemies.add(enmTemp)
 allSprites.add(platform1)
 allSprites.add(platform2)
 allSprites.add(platform3)
@@ -371,13 +430,49 @@ players.add(player)
 
 # game running
 while True:
-    # pygame.display.update()
+    # menu
+    while menu_option is True:
+        update_bg_menu()
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit(0)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if WIDTH / 3 <= mouse[0] <= (WIDTH * 2) / 3 and (2 * HEIGHT) / 5 <= mouse[1] <= (27 * HEIGHT) / 55:
+                    menu_option = False
+                if WIDTH / 3 <= mouse[0] <= (WIDTH * 2) / 3 and (3 * HEIGHT) / 5 <= mouse[1] <= (38 * HEIGHT) / 55:
+                    pygame.quit()
+                    sys.exit(0)
+        mouse = pygame.mouse.get_pos()
+        pygame.display.update()
+        framePerSec.tick(FPS)
+    # start of game
     update_bg()
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
-            sys.exit()
-    # for end of level
+            sys.exit(0)
+        if event.type == pygame.KEYDOWN:
+            if event.key == K_ESCAPE:
+                pause_menu = True
+    # pause menu
+    if pause_menu:
+        while pause_menu:
+            mouse = pygame.mouse.get_pos()
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if WIDTH / 3 <= mouse[0] <= (WIDTH * 2) / 3 and (2 * HEIGHT) / 5 <= mouse[1] <= (27 * HEIGHT) / 55:
+                        pause_menu = False
+                    if WIDTH / 3 <= mouse[0] <= (WIDTH * 2) / 3 and (3 * HEIGHT) / 5 <= mouse[1] <= (38 * HEIGHT) / 55:
+                        pygame.quit()
+                        sys.exit(0)
+            update_pause()
+            pygame.display.update()
+            framePerSec.tick(FPS)
+# for end of level
     if endState == 1:
         winText = FONT_WIN_LOSE.render("YOU WIN", True, (0, 0, 0))
         SURFACE.blit(winText, (HEIGHT / 2, WIDTH / 2))
@@ -397,8 +492,9 @@ while True:
 
     # for timer
     time = time + 1
-    timer(time)
-    level(level_num)
+    timer()
+    level()
+
     # updating the textures
     allSprites.update()
     allSprites.draw(SURFACE)
