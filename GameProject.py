@@ -1,6 +1,5 @@
 # importing libraries
 import pygame
-<
 import NEAT
 from pygame._freetype import STYLE_DEFAULT
 
@@ -106,10 +105,10 @@ class FlagPole(pygame.sprite.Sprite):
         hit_player = pygame.sprite.spritecollide(self, players, True)
         global text_time
         global endState
-        if hit_enemy:
+        if hit_enemy and endState == 0:
             endState = -1
             text_time = pygame.time.get_ticks()
-        if hit_player:
+        if hit_player and endState == 0:
             endState = 1
             text_time = pygame.time.get_ticks()
 
@@ -176,42 +175,13 @@ class Enemy(Player):
 
     # It is repeated in order to add in the two functions, (get_closest_higher_platform() and get_distance_flag())
     def update(self):
-
-        #super()
-        dx = 0;
-        dy = 0;
-        self.inputs = self.get_input()
-        if self.inputs[0]:
-            dx -= 5
-        if self.inputs[1]:
-            dx += 5
-        if self.inputs[2]:
-            if self.jump:
-                self.vy = -10
-        # gravity
-        dy += self.vy
-        self.vy = min(self.vy + 1, 10)
-        # initial movements
-        self.rect.x += dx
-        self.rect.y += dy
-        # constraints
-        self.rect = self.rect.clamp(0, 0, WIDTH, HEIGHT)
-
-        # platform collision
-        hits = pygame.sprite.spritecollide(self, platforms, False)
-        if hits:
-            self.rect.y = hits[0].rect.top - self.rect.h
-            self.vy = 0;
-            self.jump = True
-        else:
-            self.jump = False
-
+        super().update()
         # flag collision, records time
         hit_flag = pygame.sprite.spritecollide(self, endPoint, False)
         if hit_flag:
             global time
             entity_time = time/30
-            self.entity_fitness = self.fitness(entity_time)
+            self.organism.fitness = self.fitness(entity_time)
 
     def get_input(self):
         self.outputs = self.organism.forward_prop(tuple((
@@ -220,8 +190,8 @@ class Enemy(Player):
             NEAT.sigmoid(self.get_closest_higher_platform_distance_x()), 
             NEAT.sigmoid(self.get_closest_higher_platform_distance_y()))))
         self.choice = self.outputs.index(max(self.outputs))
-        return [self.choice in range(2), self.choice in range(3,5), self.choice in range(1, 4)]; 
-        
+        return [self.choice in range(2), self.choice in range(3,5), self.choice in range(1, 4)];
+    
     '''
     gets the distance between the the current agent and the flag pole
     '''    
@@ -294,7 +264,7 @@ class Enemy(Player):
     def fitness(self, entity_time):
         constant1 = 5
         constant2 = 10
-        return constant1/(1 + self.get_distance_flag()) + constant2/(1 + entity_time)
+        return constant1/(1 + self.closest) + constant2/(1 + entity_time)
 
 
 # update background
@@ -348,9 +318,10 @@ def generate_enemies():
 def resetPlayers(orgList):
     global player
     for entity in enemies:
-        entity.organism.fitness = 1000 / (1 + entity.closest)
+        entity.organism.fitness = entity.fitness(30)
         entity.kill()
     player.kill()
+
     player = Player(WIDTH / 12, HEIGHT)
     players.add(player)
     allSprites.add(player)
@@ -451,14 +422,14 @@ while True:
             level_num = level_num + 1
             resetPlayers(allOrganisms)
 
-
     elif endState == -1:
         loseText = FONT_WIN_LOSE.render("YOU LOSE", True, (0, 0, 0))
         SURFACE.blit(loseText, (HEIGHT / 2, WIDTH / 2))
         if (pygame.time.get_ticks() - text_time) > 3000:
             endState = 0
             time = 0
-            event.type = QUIT
+            pygame.quit()
+            sys.exit(0)
 
     # for timer
     time = time + 1
