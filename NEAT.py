@@ -15,6 +15,7 @@ def sigmoid(x):
 		return 0
 	return (1/(1 + round(math.pow(math.e, -x), 5)))
 
+#creates a random shuffle of a list (fisher-yates alg)
 class Organism():
     def __init__(self, numInputNodes, numOutputNodes):
         self.numInputNodes = numInputNodes
@@ -92,7 +93,6 @@ class Organism():
 
     def forward_prop(self, inputVals):
         outputVals = []
-
         for i in range(0, self.numOutputNodes):
             outputVals.append(self.recurse_node(self.numInputNodes + i, inputVals, set()))
 
@@ -119,17 +119,16 @@ class Selection():
     @staticmethod
     def selection(oldGen, population):
         newGen = []
-
         oldGen.sort(key=lambda x: x.fitness, reverse=True)
-        oldGen = oldGen[0:len(oldGen)//2]
+        print(oldGen)
         newGen.append(oldGen[0])
 
-        for i in range(0, int(population/2 + 0.5) - 1):
-            newGen.append(oldGen[random.randint(0,len(oldGen) - 1)])
+        for i in range(1, math.ceil(population/2) - 1):
+            newGen.append(oldGen[random.randint(1,len(oldGen) - 1)])
 
-        for i in range(int(population/2 + 0.5) - 1, population):
+        for i in range(math.ceil(population/2) - 1, population):
             newGen.append(Selection.crossbreed(oldGen[random.randint(0,len(oldGen) - 1)], oldGen[random.randint(0,len(oldGen) - 1)]))
-        
+        print(newGen)
         return newGen
 
 class Mutation():

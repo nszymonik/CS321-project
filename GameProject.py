@@ -52,7 +52,7 @@ FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 FONT_TITLE = pygame.freetype.SysFont('arial', 22)
 
 #organism count
-ORG_POPULATION = 40 #MUST BE DIVISIBLE BY FOUR
+ORG_POPULATION = 40
 ORG_MUTATION = 0.5 #Max proportion of the population to mutate
 '''
 The ground for the game, unique sprite
