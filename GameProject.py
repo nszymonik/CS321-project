@@ -2,7 +2,6 @@
 import pygame
 import NEAT
 from pygame._freetype import STYLE_DEFAULT
-
 from pygame.locals import *
 import sys
 import random
@@ -17,12 +16,12 @@ level_num = 1
 menu_option = True
 time = 0
 text_time = 0
+pause_menu = False
 
 # assigning constants
 # set fps
 FPS = 30
 framePerSec = pygame.time.Clock()
-
 
 # set frame
 WIDTH = 450
@@ -194,12 +193,12 @@ class Enemy(Player):
     
     '''
     gets the distance between the the current agent and the flag pole
-    '''    
+    '''
     def get_distance_flag(self):
         localOut = get_distance(END_FLAG_LOCATION[0] - self.rect.x, END_FLAG_LOCATION[1] - self.rect.y)
         self.closest = min(self.closest, localOut)
         return localOut
-    
+
     '''    
     gets the closest platform that is higher than the current agent
     if the highest platform is lower than the agent then it return None 
@@ -211,13 +210,12 @@ class Enemy(Player):
         platform_pointer_distance = get_distance(ground.x - self.rect.x, ground.y - self.rect.y)
         platform_pointer = ground
         for platform_current in platforms:
-            current_distance = get_distance(platform_current.rect.centerx - self.rect.x,
-                                            platform_current.rect.centery - self.rect.y)
+            current_distance = get_distance(platform_current.rect.centerx - self.rect.x, platform_current.rect.centery - self.rect.y)
             if platform_pointer_distance > current_distance and self.rect.y > platform_current.rect.centery:
                 platform_pointer = platform_current
                 platform_pointer_distance = current_distance
         return platform_pointer
-    
+
     '''
     gets the closest platform distance that is higher than the current agent
     if the highest platform is lower than the agent then it return -1 
@@ -228,8 +226,7 @@ class Enemy(Player):
         if platform_pointer is None:
             current_distance = -1
         else:
-            current_distance = get_distance(platform_pointer.rect.centerx - self.rect.x,
-                                            platform_pointer.rect.centery - self.rect.y)
+            current_distance = get_distance(platform_pointer.rect.centerx - self.rect.x, platform_pointer.rect.centery - self.rect.y)
         return current_distance
 
     '''
@@ -285,6 +282,23 @@ def update_bg():
                                        ((2 * WIDTH) / 25, (9 * HEIGHT) / 10)])
     pygame.draw.line(SURFACE, BLACK, (WIDTH / 12, HEIGHT), (WIDTH / 12, (9 * HEIGHT) / 10), (int)(WIDTH / 100))
 
+def update_pause():
+    # background
+    SURFACE.fill(LIGHT_BLUE)
+    pygame.draw.polygon(SURFACE, GREY, [(0, HEIGHT), (WIDTH / 2, 0), (WIDTH, HEIGHT)])
+    pygame.draw.polygon(SURFACE, WHITE, [(int(WIDTH / 3), int(HEIGHT / 3)), (int(WIDTH / 2), 0),
+                                         (int(WIDTH * (2 / 3)), int(HEIGHT / 3))])
+    pygame.draw.line(SURFACE, GREEN, (0, HEIGHT - 5), (WIDTH, HEIGHT - 5), 10)
+
+    # buttons
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (2 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+    pygame.draw.ellipse(SURFACE, WHITE, ((WIDTH / 3, (3 * HEIGHT) / 5), (WIDTH / 3, HEIGHT / 11)))
+
+    start_text = FONT_TIMER.render("Resume Game", True, BLACK)
+    SURFACE.blit(start_text, ((19 * WIDTH) / 45, (17 * HEIGHT) / 40))
+    quit_text = FONT_TIMER.render("Quit Game", True, BLACK)
+    SURFACE.blit(quit_text, ((19 * WIDTH) / 45, (5 * HEIGHT) / 8))
+    FONT_TITLE.render_to(SURFACE, (WIDTH / 8, HEIGHT / 2), "Pause", BLACK, None, STYLE_DEFAULT,61, 0)
 
 def update_bg_menu():
     # background
@@ -335,6 +349,7 @@ def resetPlayers(orgList):
 def get_distance(x, y):
     return int(math.sqrt((x ** 2) + (y ** 2)))
 
+#prints the time of the timer
 def timer():
     timer_text = FONT_TIMER.render("Time %.2f" % (time / 30), True, BLACK)
     SURFACE.blit(timer_text, (0, 0))
@@ -350,6 +365,8 @@ pygame.display.set_caption('The Race Up Stair-Case Mountain')
 
 ground = Ground()
 player = Player(WIDTH / 12, HEIGHT)
+
+#Creating a group of organisms
 
 allOrganisms = []
 for i in range(ORG_POPULATION):
@@ -393,8 +410,8 @@ players.add(player)
 # game running
 while True:
     # menu
-    update_bg_menu()
     while menu_option is True:
+        update_bg_menu()
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -414,7 +431,27 @@ while True:
         if event.type == QUIT:
             pygame.quit()
             sys.exit(0)
-    # for end of level
+        if event.type == pygame.KEYDOWN:
+            if event.key == K_ESCAPE:
+                pause_menu = True
+    # pause menu
+    if pause_menu:
+        while pause_menu:
+            mouse = pygame.mouse.get_pos()
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit(0)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if WIDTH / 3 <= mouse[0] <= (WIDTH * 2) / 3 and (2 * HEIGHT) / 5 <= mouse[1] <= (27 * HEIGHT) / 55:
+                        pause_menu = False
+                    if WIDTH / 3 <= mouse[0] <= (WIDTH * 2) / 3 and (3 * HEIGHT) / 5 <= mouse[1] <= (38 * HEIGHT) / 55:
+                        pygame.quit()
+                        sys.exit(0)
+            update_pause()
+            pygame.display.update()
+            framePerSec.tick(FPS)
+# for end of level
     if endState == 1:
         winText = FONT_WIN_LOSE.render("YOU WIN", True, (0, 0, 0))
         SURFACE.blit(winText, (HEIGHT / 2, WIDTH / 2))
@@ -436,6 +473,7 @@ while True:
     time = time + 1
     timer()
     level()
+
     # updating the textures
     allSprites.update()
     allSprites.draw(SURFACE)
