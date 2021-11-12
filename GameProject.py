@@ -317,6 +317,8 @@ def generate_enemies():
 # also updates the network
 def resetPlayers(orgList):
     global player
+    global endState
+    endState = 0;
     for entity in enemies:
         entity.organism.fitness = entity.fitness(30)
         entity.kill()
@@ -430,7 +432,6 @@ while True:
             time = 0
             pygame.quit()
             sys.exit(0)
-
     # for timer
     time = time + 1
     timer()
