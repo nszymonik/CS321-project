@@ -198,7 +198,6 @@ class Enemy(Player):
             NEAT.sigmoid(self.get_distance_flag()), 
             NEAT.sigmoid(self.get_closest_higher_platform_distance_x()), 
             NEAT.sigmoid(self.get_closest_higher_platform_distance_y()))))
-        print(self.outputs)
         self.choice = self.outputs.index(max(self.outputs))
         return [self.choice in range(2), self.choice in range(3,5), self.choice in range(1, 4)]; 
         
@@ -290,6 +289,7 @@ def update_bg():
 def resetPlayers(orgList):
     global player
     for entity in enemies:
+        entity.organism.fitness = 1000 / (1 + entity.get_distance_flag())
         entity.kill()
     player.kill()
     player = Player(WIDTH / 12, HEIGHT)
@@ -298,7 +298,7 @@ def resetPlayers(orgList):
     orgList = NEAT.Selection.selection(orgList, ORG_POPULATION)
     
     for i in range(len(allOrganisms)): #One enemy is created for each organism.
-        enmTemp = Enemy(WIDTH/2, HEIGHT/2, orgList[i])
+        enmTemp = Enemy(WIDTH/12, HEIGHT, orgList[i])
         allSprites.add(enmTemp)
         enemies.add(enmTemp) 
 
