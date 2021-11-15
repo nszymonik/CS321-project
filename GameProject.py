@@ -93,9 +93,9 @@ outputs: a sprite object that needs to be created and added to the sprites group
 class FlagPole(pygame.sprite.Sprite):
     def __init__(self, x_loc, y_loc):
         super().__init__()
-        self.image = pygame.Surface((WIDTH / 100, (2 * HEIGHT) / 25))
-        self.image.fill(BLACK)
-        pygame.draw.rect(self.image, BLACK, pygame.Rect(x_loc, y_loc, WIDTH / 100, HEIGHT / 60))
+        self.image = pygame.Surface((WIDTH / 5, 1))
+        self.image.fill(GREY)
+        pygame.draw.rect(self.image, BLACK, pygame.Rect(x_loc, y_loc, WIDTH / 60, HEIGHT / 60))
         self.rect = self.image.get_rect(left=x_loc, top=y_loc)
 
     # Triggers a type of ending
@@ -273,10 +273,6 @@ def update_bg():
     pygame.draw.polygon(SURFACE, WHITE, [(int(WIDTH / 3), int(HEIGHT / 3)), (int(WIDTH / 2), 0),
                                          (int(WIDTH * (2 / 3)), int(HEIGHT / 3))])
 
-    # end flag, remains static
-    pygame.draw.polygon(SURFACE, RED, [((11 * WIDTH) / 30, (23 * HEIGHT) / 60), ((17 * WIDTH) / 50, (23 * HEIGHT / 60)),
-                                       ((11 * WIDTH) / 30, (7 * HEIGHT) / 20)])
-
     # start flag, remains static
     pygame.draw.polygon(SURFACE, RED, [((2 * WIDTH) / 25, (14 * HEIGHT) / 15), ((17 * WIDTH) / 300, (14 * HEIGHT) / 15),
                                        ((2 * WIDTH) / 25, (9 * HEIGHT) / 10)])
@@ -381,7 +377,7 @@ platform1 = Platform(WIDTH / 6, (HEIGHT * 5) / 6, WIDTH / 3)
 platform2 = Platform(WIDTH / 2, (2 * HEIGHT) / 3, WIDTH / 4)
 platform3 = Platform((7 * WIDTH) / 12, HEIGHT / 2, WIDTH / 8)
 platform4 = Platform(WIDTH / 3, (HEIGHT * 5) / 12, WIDTH / 5)
-endFlag = FlagPole((WIDTH * 11) / 30, (HEIGHT * 7) / 20)
+endFlag = FlagPole((WIDTH * 10) / 30, (HEIGHT * 9) / 22)
 
 # to update all the sprites
 allSprites = pygame.sprite.Group()
