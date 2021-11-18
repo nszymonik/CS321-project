@@ -15,7 +15,6 @@ def sigmoid(x):
 		return 0
 	return (1/(1 + round(math.pow(math.e, -x), 5)))
 
-#creates a random shuffle of a list (fisher-yates alg)
 class Organism():
     def __init__(self, numInputNodes, numOutputNodes):
         self.numInputNodes = numInputNodes
@@ -83,6 +82,8 @@ class Organism():
                 inp.append(key)
 
         for i in inp:
+            if len(edgeDict[i] - {n}) == 0:
+                return 0; #Fixes dead-end nodes
             node = (edgeDict[i] - {n}).pop()
             if self.is_input(node):
                 ret += inputVals[node]*self.edges[i][0]*self.edges[i][1]
@@ -110,7 +111,13 @@ class Selection():
         
         for key in otherOrg.edges:
             s = edgeDict[key].copy()
-            if otherOrg.edges[key][1] and key not in newOrg.edges and newOrg.contains_node(s.pop()) and newOrg.contains_node(s.pop()):
+            
+            if (len(s) == 2 #check for dead-end node related error
+                and otherOrg.edges[key][1] 
+                and key not in newOrg.edges 
+                and newOrg.contains_node(s.pop()) 
+                and newOrg.contains_node(s.pop())
+                ):
                 s = edgeDict[key].copy()
                 newOrg.add_edge(s.pop(), s.pop(), otherOrg.edges[key][0])
         
@@ -120,7 +127,7 @@ class Selection():
     def selection(oldGen, population):
         newGen = []
         oldGen.sort(key=lambda x: x.fitness, reverse=True)
-        print(oldGen)
+        #print(oldGen)
         newGen.append(oldGen[0])
 
         for i in range(1, math.ceil(population/2) - 1):
@@ -128,7 +135,7 @@ class Selection():
 
         for i in range(math.ceil(population/2) - 1, population):
             newGen.append(Selection.crossbreed(oldGen[random.randint(0,len(oldGen) - 1)], oldGen[random.randint(0,len(oldGen) - 1)]))
-        print(newGen)
+        #print(newGen)
         return newGen
 
 class Mutation():

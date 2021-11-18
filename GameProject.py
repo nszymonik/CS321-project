@@ -52,13 +52,12 @@ FONT_WIN_LOSE = pygame.font.SysFont('arial', 22)
 FONT_TITLE = pygame.freetype.SysFont('arial', 22)
 
 #organism count
-ORG_POPULATION = 40
+ORG_POPULATION = 400
 ORG_MUTATION = 0.5 #Max proportion of the population to mutate
 '''
 The ground for the game, unique sprite
 outputs: a sprite object that needs to be created and added to the sprites group
 '''
-
 
 class Ground(pygame.sprite.Sprite):
     def __init__(self):
@@ -89,7 +88,6 @@ The Flag pole for the start and end flags
 inputs: xLoc = the left most location, yLoc = the top most location
 outputs: a sprite object that needs to be created and added to the sprites group
 '''
-
 class FlagPole(pygame.sprite.Sprite):
     def __init__(self, x_loc, y_loc):
         super().__init__()
@@ -221,13 +219,15 @@ class Enemy(Player):
     if the highest platform is lower than the agent then it return -1 
     '''
     def get_closest_higher_platform_distance(self):
-        platform_pointer = self.get_closest_higher_platform()
+        platform = self.get_closest_higher_platform()
+        return 0 if platform is None else get_distance(platform.rect.centerx-self.rect.x, platform.rect.centery - self.rect.y) 
+        '''
         current_distance = 0
         if platform_pointer is None:
             current_distance = -1
         else:
             current_distance = get_distance(platform_pointer.rect.centerx - self.rect.x, platform_pointer.rect.centery - self.rect.y)
-        return current_distance
+        return current_distance'''
 
     '''
     gets the x value that is needed to get the center of the closest platform
@@ -250,7 +250,6 @@ class Enemy(Player):
     '''
     def get_closest_higher_platform_distance_y(self):
         platform_pointer = self.get_closest_higher_platform()
-        current_distance_y = 0
         if platform_pointer is None:
             current_distance_y = 0
         else:
@@ -261,7 +260,7 @@ class Enemy(Player):
     def fitness(self, entity_time):
         constant1 = 5
         constant2 = 10
-        return constant1/(1 + self.closest) + constant2/(1 + entity_time)
+        return constant1/(1 + self.closest) #+ constant2/(1 + entity_time)
 
 
 # update background
@@ -369,7 +368,7 @@ for i in range(ORG_POPULATION):
     orgTemp = NEAT.Organism(4,5)
     for j in range(4):
         for k in range(4, 9):
-            orgTemp.add_edge(j, k, random.random()) #Starting with random seed values. Jus' to see if something different happens.
+            orgTemp.add_edge(j, k, 0.5) #Starting with random seed values. Jus' to see if something different happens.
     allOrganisms.append(orgTemp)
 
 # platform numbers go from the top so the platform that has the end flag is the highest number
